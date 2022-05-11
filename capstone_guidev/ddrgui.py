@@ -6,8 +6,6 @@
 # Needs to: run on Raspberry Pi power on (exec UNIX command), take button input from several different I/O pins (? depends on how we implement), access and discriminate between each pin,
 # change color depending on what button was pressed
 
-# for now, just changes color based on button input, button needs to execute a C++/C file in the final version of product
-
 import tkinter as tk
 
 root = tk.Tk()
