@@ -4,6 +4,7 @@
 #include<iostream>
 #include<fstream>
 #include<list>
+#include<forward_list>
 
 using namespace std;
 
@@ -16,13 +17,20 @@ class player {
         int score;
 };
 
-// Need something to print all contents in list
+// Print all contents in a linked list
+void print_list(list<player> p_list) {
+    for(auto itr: p_list) {
+        cout << "Name:" << itr.name << endl;
+        cout << "Score:" << itr.score << endl;
+        cout << endl;
+    }
+}
 
-void rearrage(list<player> player_list_copy) {
+//void rearrage(list<player> player_list_copy) {
     // WRITE CODE HERE DEL. Use player_list_copy, Don't worry about rest of the code, just focus on this fuction.
     // This function returns void, so it returns nothing. All I want is arranged data inside player_list_copy.
     // And also remove the comments inside this function after you are done.
-}
+//}
 
 int main(int argc, char* argv[]){
 
@@ -70,7 +78,8 @@ int main(int argc, char* argv[]){
         p_copy.score = stoi(argv[2]);
         player_list.push_back(p_copy);
         // Rearrange linked list based on player's score (Descending order)
-        rearrage(player_list);
+        //rearrage(player_list);
+        print_list(player_list);
     }
 
     sb_read.close();
