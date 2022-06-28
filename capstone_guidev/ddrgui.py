@@ -1,8 +1,8 @@
-# Main UI REV 2.0
-# 2.0 Changes: GUI refactored into OOP approach
-# OOP allows for easier file splitting for organization, improved readability, etc.
+# Main UI REV 2.1
+# 2.1 Changes: Scoreboard frame added, functionality to read from scoreboard and display in widgets
 
-# TODO Next Revision: implement Scoreboard class, split files, stylize MainMenu class
+# TODO Next Revision: split files? splitting the file has gotten to become really awkward because the classes depend on each other
+# stylize MainMenu class
 
 # On Pi, need to install modules: tkinter, Pillow
 # cmd line inputs: 
@@ -22,7 +22,7 @@ class orthoGUI(tk.Tk):
 
         self.frames = {}
 
-        for F in (MainMenu, AvatarSelect, GameLoop):
+        for F in (MainMenu, AvatarSelect, GameLoop, Scoreboard):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -57,12 +57,13 @@ class AvatarSelect(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.controller = controller
 
-        avatarList = os.listdir(r'C:\Users\Ryan\Desktop\capstone_guidev\avatar_pics')
+        # change paths depending on branch/system currently running the program
+        avatarList = os.listdir(r'C:\Users\Ryan\Desktop\Ortho-matryx-Ryan_Branch\capstone_guidev\avatar_pics')
         labelList = []; buttonList = []; columnNum = 0; rowNum = 0
         for i in range(len(avatarList)):
             def func(x=i):
-                return SelectAvatar(r'C:\Users\Ryan\Desktop\capstone_guidev\avatar_pics\\'+avatarList[x])
-            temp = ImageTk.PhotoImage(Image.open(r'C:\Users\Ryan\Desktop\capstone_guidev\avatar_pics\\'+avatarList[i]).resize((100,100)))
+                return SelectAvatar(r'C:\Users\Ryan\Desktop\Ortho-matryx-Ryan_Branch\capstone_guidev\avatar_pics\\'+avatarList[x])
+            temp = ImageTk.PhotoImage(Image.open(r'C:\Users\Ryan\Desktop\Ortho-matryx-Ryan_Branch\capstone_guidev\avatar_pics\\'+avatarList[i]).resize((100,100)))
             labelList.append(tk.Label(self))
             labelList[i].image = temp
             labelList[i].configure(image = temp)
@@ -97,8 +98,32 @@ class GameLoop(tk.Frame):
                 xIter += 100
         matrix.pack(anchor=tk.CENTER)
 
-        returnMM_GS = tk.Button(self, text = "Return to Main Menu", command = lambda:controller.show_frame(MainMenu))
-        returnMM_GS.pack()
+        returnMM = tk.Button(self, text = "Return to Main Menu", command = lambda:controller.show_frame(MainMenu))
+        returnMM.pack()
+        toScoreboard = tk.Button(self, text="Display scoreboard", command = lambda:controller.show_frame(Scoreboard))
+        toScoreboard.pack()
+
+class Scoreboard(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self,parent)
+        self.controller = controller
+
+        scoreboardLabel = tk.Label(self, text = "Scoreboard", font=LARGE_FONT)
+        scoreboardLabel.pack()
+
+        # code displaying file in text widget: looks primitive but keeping it commented to possibly revisit
+        #f = open(r'C:\Users\Ryan\Desktop\Ortho-matryx-Ryan_Branch\backend\score_board\sb.txt', 'r')
+        #data = f.read()
+        #sbContent = tk.Text(self, width = 50, height = 50)
+        #sbContent.insert(tk.END, data)
+        #f.close()
+        #sbContent.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=20)
+
+        with open(r'C:\Users\Ryan\Desktop\Ortho-matryx-Ryan_Branch\backend\score_board\sb.txt', 'r') as f:
+            tk.Label(self, text = f.read()).pack()
+
+        returnMM = tk.Button(self, text = "Return to Main Menu", command = lambda:controller.show_frame(MainMenu))
+        returnMM.pack()
 
 def SelectAvatar(path):
      print("Select this avatar: " + path)
