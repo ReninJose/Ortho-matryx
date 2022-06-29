@@ -1,15 +1,19 @@
 // Author: Renin Kingsly Jose
+// Intern: Delbert Edric
+// Rev 1.0
 
 #include<bits/stdc++.h>
 #include<iostream>
 #include<fstream>
-#include<list>
 #include<forward_list>
+#include<list>
 
 using namespace std;
 
 // NOTE: PATH needs to be changed when importing the code to rapsberry pi. 
-const char* PATH = "/home/renin/Documents/Ortho-matryx/backend/score_board/sb.txt";
+const char* PATH = "/home/pyfitl/Documents/Ortho-matryx/backend/score_board/sb.txt";
+
+//"/home/renin/Documents/Ortho-matryx/backend/score_board/sb.txt"
 
 class player {
     public:
@@ -18,7 +22,7 @@ class player {
 };
 
 // Print all contents in a linked list
-void print_list(list<player> p_list) {
+void print_list(forward_list<player> p_list) {
     for(auto itr: p_list) {
         cout << "Name:" << itr.name << endl;
         cout << "Score:" << itr.score << endl;
@@ -26,15 +30,51 @@ void print_list(list<player> p_list) {
     }
 }
 
-//void rearrage(list<player> player_list_copy) {
-    // WRITE CODE HERE DEL. Use player_list_copy, Don't worry about rest of the code, just focus on this fuction.
-    // This function returns void, so it returns nothing. All I want is arranged data inside player_list_copy.
-    // And also remove the comments inside this function after you are done.
-//}
+// Ascending Ordering the list
+bool A_sorter(player a, player b) {   
+    return a.score <= b.score;
+}
+
+// Descending Ordering the list
+bool D_sorter(player a, player b) {
+    return a.score >= b.score;
+}
+
+void rearrage_import(forward_list<player> pool) {
+    ofstream sb_rewrite(PATH, ios::trunc);
+    int size = 0;
+
+    // Find # of contents of scoreboard
+    for(auto itr: pool){
+        size += 1;
+    }
+    
+    //Checks see if scoreboard is fully populated (10)
+    if (size > 10) {
+        pool.sort(A_sorter);
+        pool.pop_front(); //////
+        pool.sort(D_sorter);
+        print_list(pool);
+        cout<< "More Than 10\n";
+    }
+    else{
+        pool.sort(D_sorter);
+        print_list(pool);
+        cout<< "Less Than 10\n";
+    }
+
+    //Rewrite text file to contain top 10 descending scores.
+    for(auto itr: pool) {
+        sb_rewrite << itr.name << " " << itr.score << endl;
+    }
+       
+    sb_rewrite.close();
+
+}
 
 int main(int argc, char* argv[]){
 
-    list<player> player_list;
+    forward_list<player> player_list;
     player p_copy;
 
     string player_name;
@@ -71,19 +111,20 @@ int main(int argc, char* argv[]){
             p_copy.name = player_name;
             ss >> player_score;
             p_copy.score = player_score;
-            player_list.push_back(p_copy);
+            player_list.push_front(p_copy);
         }
         // Load in the newest player to the linked list
         p_copy.name = argv[1];
         p_copy.score = stoi(argv[2]);
-        player_list.push_back(p_copy);
-        // Rearrange linked list based on player's score (Descending order)
-        //rearrage(player_list);
-        print_list(player_list);
+        player_list.push_front(p_copy);
+        
+        sb_write.close();
+        
+        // Rearrange and import data 
+        rearrage_import(player_list);  
     }
 
     sb_read.close();
-    sb_write.close();
 
     return 0;
 }
