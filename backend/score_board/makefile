@@ -1,3 +1,5 @@
+## Author: Renin Kingsly Jose
+
 CC = /usr/bin/g++
 OBJ_NAME = sb
 
