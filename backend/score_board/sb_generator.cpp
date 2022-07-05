@@ -1,34 +1,21 @@
-// Author: Renin Kingsly Jose
-// Intern: Delbert Edric
-// Rev 1.0
+// Author: Renin Kingsly Jose, Delbert Edric
+// Rev 1.1
 
 #include<bits/stdc++.h>
 #include<iostream>
 #include<fstream>
 #include<forward_list>
-#include<list>
 
 using namespace std;
 
 // NOTE: PATH needs to be changed when importing the code to rapsberry pi. 
-const char* PATH = "/home/pyfitl/Documents/Ortho-matryx/backend/score_board/sb.txt";
-
-//"/home/renin/Documents/Ortho-matryx/backend/score_board/sb.txt"
+const char* PATH = "/home/renin/Documents/Ortho-matryx/backend/score_board/sb.txt";
 
 class player {
     public:
         string name;
         int score;
 };
-
-// Print all contents in a linked list
-void print_list(forward_list<player> p_list) {
-    for(auto itr: p_list) {
-        cout << "Name:" << itr.name << endl;
-        cout << "Score:" << itr.score << endl;
-        cout << endl;
-    }
-}
 
 // Ascending Ordering the list
 bool A_sorter(player a, player b) {   
@@ -52,15 +39,11 @@ void rearrage_import(forward_list<player> pool) {
     //Checks see if scoreboard is fully populated (10)
     if (size > 10) {
         pool.sort(A_sorter);
-        pool.pop_front(); //////
+        pool.pop_front(); 
         pool.sort(D_sorter);
-        print_list(pool);
-        cout<< "More Than 10\n";
     }
-    else{
+    else {
         pool.sort(D_sorter);
-        print_list(pool);
-        cout<< "Less Than 10\n";
     }
 
     //Rewrite text file to contain top 10 descending scores.
@@ -92,7 +75,6 @@ int main(int argc, char* argv[]){
 
     // Check if scoreboard is empty
     if (!getline(sb_read, score_line)) {
-        cout << "Scoreboard Empty, Writting first content on the board" << endl;
         // Write first content on the board
         sb_write << argv[1] << " " << stoi(argv[2]) << endl;
         sb_read.close();
@@ -103,7 +85,7 @@ int main(int argc, char* argv[]){
         // Reseting getline back to first line of the file
         sb_read.clear();
         sb_read.seekg(0);
-        cout << "Reading contents from the scoreboard" << endl;
+    
         while(getline(sb_read, score_line)) {
             // Load in each player to the linked list
             istringstream ss(score_line);
@@ -122,9 +104,8 @@ int main(int argc, char* argv[]){
         
         // Rearrange and import data 
         rearrage_import(player_list);  
+        sb_read.close();
+        return 0;
     }
 
-    sb_read.close();
-
-    return 0;
 }
