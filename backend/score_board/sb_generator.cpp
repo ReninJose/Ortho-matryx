@@ -28,6 +28,7 @@ bool D_sorter(player a, player b) {
 }
 
 void rearrage_import(forward_list<player> pool) {
+    
     ofstream sb_rewrite(PATH, ios::trunc);
     int size = 0;
 
