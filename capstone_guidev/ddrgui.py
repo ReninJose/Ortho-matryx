@@ -1,5 +1,5 @@
-# Main UI REV 2.1
-# 2.1 Changes: Scoreboard frame added, functionality to read from scoreboard and display in widgets
+# Main UI REV 2.2
+# 2.2 Changes: Initial execution of backend
 
 # TODO Next Revision: split files? splitting the file has gotten to become really awkward because the classes depend on each other
 # stylize MainMenu class
@@ -9,10 +9,12 @@
 # python3 -m pip install pillow
 
 import os
+import subprocess
 import tkinter as tk
 from PIL import ImageTk, Image
 
 LARGE_FONT= ("Verdana", 12)
+AVATAR_PATH = r'/home/ryanw5758/Desktop/Ortho-matryx-main/capstone_guidev/avatar_pics/'
 
 class orthoGUI(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -58,12 +60,12 @@ class AvatarSelect(tk.Frame):
         self.controller = controller
 
         # change paths depending on branch/system currently running the program
-        avatarList = os.listdir(r'C:\Users\Ryan\Desktop\Ortho-matryx-Ryan_Branch\capstone_guidev\avatar_pics')
+        avatarList = os.listdir(AVATAR_PATH)
         labelList = []; buttonList = []; columnNum = 0; rowNum = 0
         for i in range(len(avatarList)):
             def func(x=i):
-                return SelectAvatar(r'C:\Users\Ryan\Desktop\Ortho-matryx-Ryan_Branch\capstone_guidev\avatar_pics\\'+avatarList[x])
-            temp = ImageTk.PhotoImage(Image.open(r'C:\Users\Ryan\Desktop\Ortho-matryx-Ryan_Branch\capstone_guidev\avatar_pics\\'+avatarList[i]).resize((100,100)))
+                return SelectAvatar(AVATAR_PATH+avatarList[x])
+            temp = ImageTk.PhotoImage(Image.open(AVATAR_PATH+avatarList[i]).resize((100,100)))
             labelList.append(tk.Label(self))
             labelList[i].image = temp
             labelList[i].configure(image = temp)
@@ -100,7 +102,7 @@ class GameLoop(tk.Frame):
 
         returnMM = tk.Button(self, text = "Return to Main Menu", command = lambda:controller.show_frame(MainMenu))
         returnMM.pack()
-        toScoreboard = tk.Button(self, text="Display scoreboard", command = lambda:controller.show_frame(Scoreboard))
+        toScoreboard = tk.Button(self, text="Display scoreboard", command = lambda:[controller.show_frame(Scoreboard), WriteSB("Ryan", 4)])
         toScoreboard.pack()
 
 class Scoreboard(tk.Frame):
@@ -111,22 +113,21 @@ class Scoreboard(tk.Frame):
         scoreboardLabel = tk.Label(self, text = "Scoreboard", font=LARGE_FONT)
         scoreboardLabel.pack()
 
-        # code displaying file in text widget: looks primitive but keeping it commented to possibly revisit
-        #f = open(r'C:\Users\Ryan\Desktop\Ortho-matryx-Ryan_Branch\backend\score_board\sb.txt', 'r')
-        #data = f.read()
-        #sbContent = tk.Text(self, width = 50, height = 50)
-        #sbContent.insert(tk.END, data)
-        #f.close()
-        #sbContent.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=20)
-
-        with open(r'C:\Users\Ryan\Desktop\Ortho-matryx-Ryan_Branch\backend\score_board\sb.txt', 'r') as f:
+        with open(r'/home/ryanw5758/Desktop/Ortho-matryx-main/backend/score_board/sb.txt', 'r') as f:
             tk.Label(self, text = f.read()).pack()
 
-        returnMM = tk.Button(self, text = "Return to Main Menu", command = lambda:controller.show_frame(MainMenu))
+        returnMM = tk.Button(self, text = "Return to Main Menu", command = lambda:[controller.show_frame(MainMenu)])
         returnMM.pack()
 
 def SelectAvatar(path):
      print("Select this avatar: " + path)
+
+def WriteSB(name, score):
+    print("Writing name to scoreboard: " + name)
+    print("Writing score to scoreboard: "); print(score)
+    scoreStr = str(score)
+    proc = subprocess.Popen(["/home/ryanw5758/Desktop/Ortho-matryx-main/backend", "sb", name, scoreStr])
+    proc.wait()
 
 if __name__ == "__main__":
     app = orthoGUI()
