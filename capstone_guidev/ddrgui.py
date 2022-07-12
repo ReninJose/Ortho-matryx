@@ -1,5 +1,5 @@
-# Main UI REV 2.2
-# 2.2 Changes: Initial execution of backend
+# Main UI REV 2.21
+# 2.21 Changes: Initial execution of backend
 
 # TODO Next Revision: split files? splitting the file has gotten to become really awkward because the classes depend on each other
 # stylize MainMenu class
@@ -126,7 +126,7 @@ def WriteSB(name, score):
     print("Writing name to scoreboard: " + name)
     print("Writing score to scoreboard: "); print(score)
     scoreStr = str(score)
-    proc = subprocess.Popen(["/home/ryanw5758/Desktop/Ortho-matryx-main/backend", "sb", name, scoreStr])
+    proc = subprocess.Popen(["/home/ryanw5758/Desktop/Ortho-matryx-main/backend/backend", "sb", name, scoreStr])
     proc.wait()
 
 if __name__ == "__main__":
