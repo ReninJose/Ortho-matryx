@@ -1,15 +1,19 @@
 // Author: Renin Kingsly Jose
+// Rev 2.0
 
 #include<iostream>
+#include<string>
 #include<stdlib.h>
 #include<unistd.h>
 //#include<pthread.h>
-#include<string>
+#include<sys/wait.h>
 
 using namespace std;
 
 int main(int argc, char* argv[]){
 
+    pid_t pid;              // For process ID 
+    int status;
     const char* id;
     const char* score;
     string command = argv[1];
@@ -24,8 +28,25 @@ int main(int argc, char* argv[]){
         cout << id;
         score = argv[3];
         cout << " " << score << endl;
-        cout << "Process overlaying sb_generator.cpp over backend.cpp ..." << endl;
-        execlp("./score_board/sb", "sb", id, score , NULL);     // Calling execlp ends this program here
+        pid = fork();                   // Forking new process
+
+        if(pid < 0) {
+            perror("Fork failed");
+            return 1;
+        }
+
+        // Child
+        if(pid == 0) {
+            if(execl("/home/renin/Documents/Ortho-matryx/backend/score_board/sb", "sb", id, score , NULL) < 0) {
+                perror("Execl failed");
+                return 1;
+            }    
+        }
+        // Parent
+        else {
+            // Parent waits until child process ends
+            wait(&status);
+        }
     }
     // Initiate code for Color Generator
     else if (command.compare("cg") == 0) {
