@@ -1,5 +1,5 @@
 // Author: Renin Kingsly Jose, Delbert Edric
-// Rev 1.1
+// Rev 1.2
 
 #include<bits/stdc++.h>
 #include<iostream>
@@ -11,6 +11,7 @@ using namespace std;
 // NOTE: PATH needs to be changed when importing the code to rapsberry pi. 
 const char* PATH = "/home/renin/Documents/Ortho-matryx/backend/score_board/sb.txt";
 
+// To group player's attributes
 class player {
     public:
         string name;
@@ -27,7 +28,9 @@ bool D_sorter(player a, player b) {
     return a.score >= b.score;
 }
 
+// Rearrange and import data back to file
 void rearrage_import(forward_list<player> pool) {
+    
     ofstream sb_rewrite(PATH, ios::trunc);
     int size = 0;
 
