@@ -9,7 +9,7 @@
 using namespace std;
 
 // NOTE: PATH needs to be changed when importing the code to rapsberry pi. 
-const char* PATH = "/home/renin/Documents/Ortho-matryx/backend/score_board/sb.txt";
+const char* PATH = "/home/pyfitl/Documents/Ortho-matryx/backend/score_board/sb.txt";
 
 // To group player's attributes
 class player {

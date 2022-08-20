@@ -37,7 +37,7 @@ int main(int argc, char* argv[]){
 
         // Child
         if(pid == 0) {
-            if(execl("/home/renin/Documents/Ortho-matryx/backend/score_board/sb", "sb", id, score , NULL) < 0) {
+            if(execl("/home/pyfitl/Documents/Ortho-matryx/backend/score_board/sb", "sb", id, score , NULL) < 0) {
                 perror("Execl failed");
                 return 1;
             }    
