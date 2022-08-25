@@ -19,6 +19,8 @@ sudo apt install vim -y
 echo -e "${green}INCLUDING PYTHON PACKAGES....${NC}"
 sudo apt install python3 -y
 sudo apt install python3-pil python3-pil.imagetk -y
+sudo apt-get install python-dev -y
+sudo apt-get install python3-dev -y  
 
 # ---- FOR C/C++ ----#
 echo -e "${green}INCLUDING C/C++ PACKAGES....${NC}"
@@ -37,3 +39,4 @@ fi
 
 cd ..
 g++ -o backend backend.cpp
+
