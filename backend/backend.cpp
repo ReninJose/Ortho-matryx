@@ -1,27 +1,58 @@
 // Author: Renin Kingsly Jose
+// Rev 2.0
 
 #include<iostream>
+#include<string>
 #include<stdlib.h>
 #include<unistd.h>
-#include<pthread.h>
+//#include<pthread.h>
+#include<sys/wait.h>
 
 using namespace std;
 
-const char* test_id = "john";
-const char* test_score = "9";
+int main(int argc, char* argv[]){
 
-void* score_board(void*) {      
-    execlp("./score_board/sb", "sb", test_id, test_score , NULL);
-    return NULL;
-}
+    pid_t pid;              // For process ID 
+    int status;
+    const char* id;
+    const char* score;
+    string command = argv[1];
 
-int main(){
+    if (argc != 4) {
+        cout << "Invalid # of argument count" << endl;
+        return 1;
+    }
+    // Initiate code for scoreboard
+    if (command.compare("sb") == 0) {
+        id = argv[2];
+        cout << id;
+        score = argv[3];
+        cout << " " << score << endl;
+        pid = fork();                   // Forking new process
 
-    pthread_t call_sb;
-    
-    // Calling sb_generator.cpp
-    pthread_create(&call_sb, NULL, score_board, NULL);
-    pthread_join(call_sb,NULL);
+        if(pid < 0) {
+            perror("Fork failed");
+            return 1;
+        }
+
+        // Child
+        if(pid == 0) {
+            if(execl("/home/renin/Documents/Ortho-matryx/backend/score_board/sb", "sb", id, score , NULL) < 0) {
+                perror("Execl failed");
+                return 1;
+            }    
+        }
+        // Parent
+        else {
+            // Parent waits until child process ends
+            wait(&status);
+        }
+    }
+    // Initiate code for Color Generator
+    else if (command.compare("cg") == 0) {
+        // open color generator code & and most likely keep the backend thread running.
+    }
+
 
     return 0;
 }
