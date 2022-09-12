@@ -1,58 +1,62 @@
 // Author: Renin Kingsly Jose
-// Rev 2.0
+// Rev 2.5
+
+/* ------------------------------------------
+
+Backend.cpp allows front-end modules to send arguments to the back-end module to perform the following functions
+
+Generate per game round's color pattern:
+    - ./backend cg 
+
+Adding contents to the scoreboard:
+    - ./backend sb <(name)id> <score> 
+
+------------------------------------------ */ 
 
 #include<iostream>
 #include<string>
 #include<stdlib.h>
 #include<unistd.h>
-//#include<pthread.h>
 #include<sys/wait.h>
 
 using namespace std;
 
+const char* sb_PATH = "/home/renin/Documents/Ortho-matryx/backend/score_board/sb";
+const char* cg_PATH = "/home/renin/Documents/Ortho-matryx/backend/color_rand_gen/color";
+
 int main(int argc, char* argv[]){
 
-    pid_t pid;              // For process ID 
     int status;
-    const char* id;
-    const char* score;
     string command = argv[1];
 
-    if (argc != 4) {
-        cout << "Invalid # of argument count" << endl;
-        return 1;
-    }
     // Initiate code for scoreboard
     if (command.compare("sb") == 0) {
-        id = argv[2];
-        cout << id;
-        score = argv[3];
-        cout << " " << score << endl;
-        pid = fork();                   // Forking new process
-
-        if(pid < 0) {
-            perror("Fork failed");
+        
+        if (argc != 4) {
+            cout << "Invalid # of argument count" << endl;
             return 1;
         }
 
-        // Child
-        if(pid == 0) {
-            if(execl("/home/renin/Documents/Ortho-matryx/backend/score_board/sb", "sb", id, score , NULL) < 0) {
-                perror("Execl failed");
-                return 1;
-            }    
-        }
-        // Parent
-        else {
-            // Parent waits until child process ends
-            wait(&status);
-        }
+        const char* id;
+        const char* score;
+
+        id = argv[2];
+        score = argv[3];
+
+        if(execl(sb_PATH, "sb", id, score , NULL) < 0) {
+            perror("Execl failed");
+            return 1;
+        }    
     }
     // Initiate code for Color Generator
     else if (command.compare("cg") == 0) {
-        // open color generator code & and most likely keep the backend thread running.
-    }
 
+        if(execl(cg_PATH, "color", NULL) < 0) {
+            perror("Execl failed");
+            return 1;
+        }
+    }    
 
     return 0;
 }
+    

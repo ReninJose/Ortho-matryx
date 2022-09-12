@@ -16,7 +16,7 @@ import tkinter as tk
 from PIL import ImageTk, Image
 
 LARGE_FONT= ("Verdana", 12)
-AVATAR_PATH = r'/home/renin/Documents/Ortho-matryx/capstone_guidev/avatar_pics/'
+AVATAR_PATH = r'/home/pyfitl/Documents/Ortho-matryx/capstone_guidev/avatar_pics/'
 
 class orthoGUI(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -102,7 +102,7 @@ class GameLoop(tk.Frame):
                 xIter += 100
         matrix.pack(anchor=tk.CENTER)
 
-        WriteSB('Ryan', 4)
+        WriteSB('Del', 9001)
 
         returnMM = tk.Button(self, text = "Return to Main Menu", command = lambda:controller.show_frame(MainMenu))
         returnMM.pack()
@@ -117,7 +117,7 @@ class Scoreboard(tk.Frame):
         scoreboardLabel = tk.Label(self, text = "Scoreboard", font=LARGE_FONT)
         scoreboardLabel.pack()
 
-        with open(r'/home/renin/Documents/Ortho-matryx/backend/score_board/sb.txt', 'r') as f:
+        with open(r'/home/pyfitl/Documents/Ortho-matryx/backend/score_board/sb.txt', 'r') as f:
             tk.Label(self, text = f.read()).pack()
 
         returnMM = tk.Button(self, text = "Return to Main Menu", command = lambda:[controller.show_frame(MainMenu)])
@@ -127,7 +127,7 @@ def WriteSB(name, score):
     print("Writing name to scoreboard: " + name)
     scoreStr = str(score)
     print("Writing score to scoreboard: " + scoreStr)
-    subprocess.call(['/home/renin/Documents/Ortho-matryx/backend/backend', 'sb', name, scoreStr])
+    subprocess.call(['/home/pyfitl/Documents/Ortho-matryx/backend/backend', 'sb', name, scoreStr])
     time.sleep(1)
 
 def SelectAvatar(path):
