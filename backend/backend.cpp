@@ -1,6 +1,18 @@
 // Author: Renin Kingsly Jose
 // Rev 2.5
 
+/* ------------------------------------------
+
+Backend.cpp allows front-end modules to send arguments to the back-end module to perform the following functions
+
+Generate per game round's color pattern:
+    - ./backend cg 
+
+Adding contents to the scoreboard:
+    - ./backend sb <(name)id> <score> 
+
+------------------------------------------ */ 
+
 #include<iostream>
 #include<string>
 #include<stdlib.h>
@@ -9,9 +21,11 @@
 
 using namespace std;
 
+const char* sb_PATH = "/home/renin/Documents/Ortho-matryx/backend/score_board/sb";
+const char* cg_PATH = "/home/renin/Documents/Ortho-matryx/backend/color_rand_gen/color";
+
 int main(int argc, char* argv[]){
 
-    pid_t pid;              // For process ID 
     int status;
     string command = argv[1];
 
@@ -27,42 +41,22 @@ int main(int argc, char* argv[]){
         const char* score;
 
         id = argv[2];
-        cout << id;
         score = argv[3];
-        cout << " " << score << endl;
 
-        if(execl("/home/renin/Documents/Ortho-matryx/backend/score_board/sb", "sb", id, score , NULL) < 0) {
+        if(execl(sb_PATH, "sb", id, score , NULL) < 0) {
             perror("Execl failed");
             return 1;
         }    
     }
     // Initiate code for Color Generator
     else if (command.compare("cg") == 0) {
-        pid = fork();                   // Forking new process
 
-        if(pid < 0) {
-            perror("Fork failed");
+        if(execl(cg_PATH, "color", NULL) < 0) {
+            perror("Execl failed");
             return 1;
         }
+    }    
 
-        // Child
-        if(pid == 0) {
-            if(execl("/home/renin/Documents/Ortho-matryx/backend/color_rand_gen/color", "color", NULL) < 0) {
-                perror("Execl failed");
-                return 1;
-            }
-        }
-        // Parent
-        else if(pid > 0) {
-            // Wait for child process to finish
-            wait(&status);
-
-            // This section executes piClient.py
-            if (execl("/home/renin/Documents/Ortho-matryx/pi-client/Initiator", "Initiator", NULL) < 0) {            // FINISH THIS
-                perror("Execl failed");
-                return 1;
-            }
-        }    
-    }
     return 0;
 }
+    

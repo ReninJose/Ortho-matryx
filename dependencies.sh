@@ -1,5 +1,5 @@
 # Author: Renin Kingsly Jose
-# Rev 1.5
+# Rev 2.0
 # !/bin/bash
 
 green='\e[1;32m'
@@ -33,10 +33,42 @@ cd backend/score_board/
 g++ -o sb sb_generator.cpp
 
 if [ ! -f "sb.txt" ]; then
-    echo -e "${yellow}WARNING: MANIFESTING A NEW SB.TXT....${NC}"
+    echo -e "${yellow}MANIFESTING A NEW SB.TXT....${NC}"
     touch sb.txt
 fi
 
 cd ..
 g++ -o backend backend.cpp
+cd color_rand_gen/
+g++ -o color_generator color_generator.cpp
+g++ -o tally tally.cpp
 
+if [ ! -f "correct_color.txt"]; then
+    echo -e "${yellow}MANIFESTING A NEW CORRECT_COLOR.TXT....${NC}"
+    touch correct_color.txt
+fi
+
+if [ ! -f "score.txt"];then
+    echo -e "${yellow}MANIFESTING A NEW SCORE.TXT....${NC}"
+    touch score.txt
+fi
+
+cd ../../pi-client/
+gcc -o Initiator Initiator.c $(/usr/bin/python2.7-config --ldflags)
+
+if [ ! -f "battery.txt"]; then
+    echo -e "${yellow}MANIFESTING A NEW BATTERY.TXT....${NC}"
+    touch correct_color.txt
+fi
+
+if [ ! -f "random.txt"];then
+    echo -e "${yellow}MANIFESTING A NEW RANDOM.TXT....${NC}"
+    touch score.txt
+fi
+
+if [ ! -f "button.txt"];then
+    echo -e "${yellow}MANIFESTING A NEW BUTTON.TXT....${NC}"
+    touch button.txt
+fi
+
+#---END---#

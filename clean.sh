@@ -12,18 +12,24 @@ echo -e "${green}UPDATING SYSTEM....${yellow}"
 sudo apt update
 sudo apt upgrade -y
 
-echo -e "${red}REMOVING MISC....${NC}"
-sudo apt remove vim -y
-
-#----Build Project----#
+#----Remove Project----#
 echo -e "${red}DESTROYING EXECUTABLES....${NC}"
 cd backend/score_board/
 rm sb
-
-if [ -f "sb.txt" ]; then
-    echo -e "${yellow}WARNING: REMOVING SB.TXT....${NC}"
-    rm -f sb.txt
-fi
+echo -e "${yellow}WARNING: REMOVING SB.TXT....${NC}"
+rm sb.txt
 
 cd ..
 rm backend
+cd color_rand_gen/
+rm color_generator
+rm tally
+echo -e "${YELLOW}WARNING: REMOVING CORRECT_COLOR.TXT, AND SCORE.TXT....${NC}"
+rm *.txt
+
+cd /home/renin/Documents/Ortho-matryx/pi-client/
+rm Initiator
+echo -e "${yellow}WARNING: REMOVING BATTERY.TXT, BUTTON.TXT, AND RANDOM.TXT....${NC}"
+rm *.txt
+
+#---END---#
