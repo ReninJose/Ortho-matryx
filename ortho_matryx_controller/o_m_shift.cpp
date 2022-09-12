@@ -51,7 +51,7 @@ void prepData32(char val, uint32_t& buf)
 --------------------------------------------*/
 void shiftOut32(uint32_t data) 
 {  
-  digitalWrite(LAT, LOW);
+  /*digitalWrite(LAT, LOW);
   
   for(uint8_t i = 0; i < 32; i++) 
   {
@@ -64,5 +64,27 @@ void shiftOut32(uint32_t data)
     digitalWrite(CLK, HIGH);
     delay(1);
   }
-  digitalWrite(LAT, HIGH);
+  digitalWrite(LAT, HIGH);*/
+
+  PORTF &= ~(LAT);
+  
+  for(uint8_t i = 0; i < 32; i++) 
+  {
+    if((data >> (31-i)) & 0x00000001) 
+      PORTF |= DAT;
+    
+    else 
+      PORTF &= ~DAT;
+      
+    DELAY_CYCLES(100/FCLK);
+    
+    PORTF &= ~(CLK);
+
+    DELAY_CYCLES(100/FCLK);
+    
+    PORTF |= CLK;
+
+    DELAY_CYCLES(100/FCLK);
+  }
+  PORTF |= LAT;
 }
