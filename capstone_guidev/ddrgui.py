@@ -1,8 +1,7 @@
-# Main UI REV 2.21
-# 2.21 Changes: Initial execution of backend
+# Main UI REV 2.30
+# 2.30 Changes: Error handling in main class and avatar class, widget rearrangement, fullscreen w/ toolbar (for now)
 
-# TODO Next Revision: split files? splitting the file has gotten to become really awkward because the classes depend on each other
-# stylize MainMenu class
+# TODO Next Revision: begin to stylize background + widgets before adding gui nav functionality, rearrange widgets in avatarSelect screen
 
 # On Pi, need to install modules: tkinter, Pillow
 # cmd line inputs: 
@@ -13,27 +12,39 @@ import time
 import threading
 import subprocess
 import tkinter as tk
+from tkinter import ttk
 from PIL import ImageTk, Image
 
 LARGE_FONT= ("Verdana", 12)
-AVATAR_PATH = r'/home/pyfitl/Documents/Ortho-matryx/capstone_guidev/avatar_pics/'
+
+AVATAR_PATH = r'/home/ryanw5758/Desktop/Ortho-matryx-main/capstone_guidev/avatar_pics/'
 
 class orthoGUI(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        container = tk.Frame(self)
+
+        WIDTH = self.winfo_screenwidth()
+        HEIGHT = self.winfo_screenheight()
+
+        self.geometry("%dx%d" % (WIDTH, HEIGHT))
+        container = tk.Frame(self, width=WIDTH, height=HEIGHT)
         container.pack(side="top", fill="both", expand=True)
+        container.config(height=HEIGHT, width=WIDTH)
 
         self.frames = {}
 
-        for F in (MainMenu, AvatarSelect, GameLoop, Scoreboard):
-            frame = F(container, self)
-            self.frames[F] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(MainMenu)
+        try:
+            for F in (MainMenu, AvatarSelect, GameLoop, Scoreboard):
+                frame = F(container, self)
+                self.frames[F] = frame
+                #frame.grid(row=0, column=0, sticky="nsew")
+                frame.place(x=0, y=0, anchor="nw", width=WIDTH, height=HEIGHT)
+            self.show_frame(MainMenu)
+        except KeyError as err:
+            print("Error: Display frame not found in list")
+            print(format(err))
 
         self.title("Ortho-Matryx")
-        self.geometry('800x800')
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -45,16 +56,14 @@ class MainMenu(tk.Frame):
         self.controller = controller
 
         # replace with GIMP/PhotoShop created title
-        titleVar = tk.StringVar()
-        titleVar.set("Ortho-Matryx")
-        mmTitle = tk.Label(self, textvariable=titleVar, font="Helvetica", relief=tk.RAISED)
+        mmTitle = ttk.Label(self, text = "Ortho-Matryx", font="Helvetica")
 
-        avatarButton = tk.Button(self, text = "Select Avatar", command = lambda:controller.show_frame(AvatarSelect))
-        qpButton = tk.Button(self, text = "Quick Play", command = lambda:controller.show_frame(GameLoop))
+        avatarButton = ttk.Button(self, text = "Select Avatar", command = lambda:controller.show_frame(AvatarSelect))
+        qpButton = ttk.Button(self, text = "Quick Play", command = lambda:controller.show_frame(GameLoop))
 
-        mmTitle.pack()
-        avatarButton.pack()
-        qpButton.pack()
+        mmTitle.place(relx=0.5,rely=0.3)
+        avatarButton.place(relx=0.5,rely=0.5)
+        qpButton.place(relx=0.5,rely=0.7)
 
 class AvatarSelect(tk.Frame):
     def __init__(self, parent, controller):
@@ -64,21 +73,25 @@ class AvatarSelect(tk.Frame):
         # change paths depending on branch/system currently running the program
         avatarList = os.listdir(AVATAR_PATH)
         labelList = []; buttonList = []; columnNum = 0; rowNum = 0
-        for i in range(len(avatarList)):
-            def func(x=i):
-                return SelectAvatar(AVATAR_PATH+avatarList[x])
-            temp = ImageTk.PhotoImage(Image.open(AVATAR_PATH+avatarList[i]).resize((100,100)))
-            labelList.append(tk.Label(self))
-            labelList[i].image = temp
-            labelList[i].configure(image = temp)
-            labelList[i].grid(row=rowNum, column=columnNum, padx=80, pady=80)
-            buttonList.append(tk.Button(self, text="Select", command = func))
-            buttonList[i].grid(row=rowNum, column=columnNum)
-            if columnNum == 2:
-                rowNum += 1
-                columnNum = 0
-            else:
-                columnNum += 1
+        try:
+            for i in range(len(avatarList)):
+                def func(x=i):
+                    return SelectAvatar(AVATAR_PATH+avatarList[x])
+                temp = ImageTk.PhotoImage(Image.open(AVATAR_PATH+avatarList[i]).resize((100,100)))
+                labelList.append(tk.Label(self))
+                labelList[i].image = temp
+                labelList[i].configure(image = temp)
+                labelList[i].grid(row=rowNum, column=columnNum, padx=80, pady=80)
+                buttonList.append(tk.Button(self, text="Select", command = func))
+                buttonList[i].grid(row=rowNum, column=columnNum)
+                if columnNum == 2:
+                    rowNum += 1
+                    columnNum = 0
+                else:
+                    columnNum += 1
+        except IndexError as err:
+            print("Error: Accessing avatar element out of range")
+            print(format(err))
 
         returnMM_AS = tk.Button(self, text = "Return to Main Menu", command = lambda:controller.show_frame(MainMenu))
         returnMM_AS.grid(row = 10, column = 1)
@@ -100,14 +113,14 @@ class GameLoop(tk.Frame):
                 xIter = 0
             else:
                 xIter += 100
-        matrix.pack(anchor=tk.CENTER)
+        matrix.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         WriteSB('Del', 9001)
 
-        returnMM = tk.Button(self, text = "Return to Main Menu", command = lambda:controller.show_frame(MainMenu))
-        returnMM.pack()
         toScoreboard = tk.Button(self, text="Display scoreboard", command = lambda:controller.show_frame(Scoreboard))
-        toScoreboard.pack()
+        toScoreboard.place(relx = 0.5, rely = 0.7, anchor = tk.CENTER)
+        returnMM = tk.Button(self, text = "Return to Main Menu", command = lambda:controller.show_frame(MainMenu))
+        returnMM.place(relx = 0.5, rely = 0.8, anchor = tk.CENTER)
 
 class Scoreboard(tk.Frame):
     def __init__(self, parent, controller):
@@ -117,7 +130,8 @@ class Scoreboard(tk.Frame):
         scoreboardLabel = tk.Label(self, text = "Scoreboard", font=LARGE_FONT)
         scoreboardLabel.pack()
 
-        with open(r'/home/pyfitl/Documents/Ortho-matryx/backend/score_board/sb.txt', 'r') as f:
+
+        with open(r'/home/ryanw5758/Desktop/Ortho-matryx-main/backend/score_board/sb.txt', 'r') as f:
             tk.Label(self, text = f.read()).pack()
 
         returnMM = tk.Button(self, text = "Return to Main Menu", command = lambda:[controller.show_frame(MainMenu)])
@@ -127,7 +141,8 @@ def WriteSB(name, score):
     print("Writing name to scoreboard: " + name)
     scoreStr = str(score)
     print("Writing score to scoreboard: " + scoreStr)
-    subprocess.call(['/home/pyfitl/Documents/Ortho-matryx/backend/backend', 'sb', name, scoreStr])
+
+    subprocess.call(['/home/ryanw5758/Desktop/Ortho-matryx-main/backend/backend', 'sb', name, scoreStr])
     time.sleep(1)
 
 def SelectAvatar(path):
