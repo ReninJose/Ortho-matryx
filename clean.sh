@@ -23,13 +23,11 @@ cd ..
 rm backend
 cd color_rand_gen/
 rm color_generator
-rm tally
-echo -e "${YELLOW}WARNING: REMOVING CORRECT_COLOR.TXT, AND SCORE.TXT....${NC}"
+echo -e "${yellow}WARNING: REMOVING CORRECT_COLOR.TXT, AND COLOR_PATTERN.TXT....${NC}"
 rm *.txt
 
-cd /home/renin/Documents/Ortho-matryx/pi-client/
-rm Initiator
-echo -e "${yellow}WARNING: REMOVING BATTERY.TXT, BUTTON.TXT, AND RANDOM.TXT....${NC}"
-rm *.txt
+cd ~/
+echo -e "${yellow}WARNING: REMOVING FONTS....${NC}"
+rm -r .fonts/
 
 #---END---#

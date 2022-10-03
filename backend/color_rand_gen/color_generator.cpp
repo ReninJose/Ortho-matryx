@@ -16,15 +16,15 @@ using namespace std;
 // # of buttons
 #define SIZE 9
 
-const char* color_PATH = "/home/renin/Documents/Ortho-matryx/backend/color_rand_gen/color_pattern.txt";
+const char* color_PATH = "/home/eldunno/capstone/Ortho-matryx/backend/color_rand_gen/color_pattern.txt";
 
-const char* cc_PATH = "/home/renin/Documents/Ortho-matryx/backend/color_rand_gen/cc.txt";
+const char* cc_PATH = "/home/eldunno/capstone/Ortho-matryx/backend/color_rand_gen/cc.txt";
+
 
 char* shuffle_array(char arr[], int n)
 {
     // To obtain a time-based seed
-    srand((int)time(0));
-    unsigned seed = (rand()%100);
+    unsigned seed = rand();
  
     // Shuffling array
     shuffle(arr, arr + n, std::default_random_engine(seed));
@@ -33,10 +33,10 @@ char* shuffle_array(char arr[], int n)
 }
 
 int main() {
-
+    
+    srand(time(NULL));
     char* color_randomized;
     char colors[] = {'r','r','r','g','g','g','b','b','b'};
-    char color_picker = {'r','g','b'};
     char correct_color;
 
     ifstream color_read(color_PATH, ios::in);
@@ -61,8 +61,7 @@ int main() {
     color_write.close();
 
     // Pick a color randomly from color_picker
-    srand(time(NULL));
-    correct_color = color_picker[(rand() % 3) + 1];
+    correct_color = color_randomized[(rand() % 9)];
 
     // Opening cc.txt
     if (!cc_read) {

@@ -21,6 +21,7 @@ sudo apt install python3 -y
 sudo apt install python3-pil python3-pil.imagetk -y
 sudo apt-get install python-dev -y
 sudo apt-get install python3-dev -y  
+pip install bleak
 
 # ---- FOR C/C++ ----#
 echo -e "${green}INCLUDING C/C++ PACKAGES....${NC}"
@@ -41,34 +42,24 @@ cd ..
 g++ -o backend backend.cpp
 cd color_rand_gen/
 g++ -o color_generator color_generator.cpp
-g++ -o tally tally.cpp
 
-if [ ! -f "correct_color.txt"]; then
+if [ ! -f "correct_color.txt" ]; then
     echo -e "${yellow}MANIFESTING A NEW CORRECT_COLOR.TXT....${NC}"
     touch correct_color.txt
 fi
 
-if [ ! -f "score.txt"];then
-    echo -e "${yellow}MANIFESTING A NEW SCORE.TXT....${NC}"
-    touch score.txt
+if [ ! -f "scolor_pattern.txt" ]; then
+    echo -e "${yellow}MANIFESTING A NEW COLOR_PATTERN.TXT....${NC}"
+    touch color_pattern.txt
 fi
 
-cd ../../pi-client/
-gcc -o Initiator Initiator.c $(/usr/bin/python2.7-config --ldflags)
+echo -e "${yellow}CREATING .font/ DIRECTORY....${NC}"
+mkdir ~/.fonts/
+echo -e "${yellow}COPYING AtariFontFullVersion-ZJ23.ttf TO .fonts/ DIRECTORY....${NC}"
+cd /home/eldunno/capstone/Ortho-matryx/gui-app/fonts
+cp AtariFontFullVersion-ZJ23.ttf ~/.fonts
 
-if [ ! -f "battery.txt"]; then
-    echo -e "${yellow}MANIFESTING A NEW BATTERY.TXT....${NC}"
-    touch correct_color.txt
-fi
-
-if [ ! -f "random.txt"];then
-    echo -e "${yellow}MANIFESTING A NEW RANDOM.TXT....${NC}"
-    touch score.txt
-fi
-
-if [ ! -f "button.txt"];then
-    echo -e "${yellow}MANIFESTING A NEW BUTTON.TXT....${NC}"
-    touch button.txt
-fi
+echo -e "${yellow}UPDATING FONTS CACHE....${NC}"
+fc-cache -f -v 
 
 #---END---#
