@@ -11,8 +11,6 @@ class OrthoMatryxBLE():
    
         
     def disconnected(self, client):
-        #a = subprocess.call(['sudo', 'systemctl', 'restart', 'bluetooth'])
-        #sub = subprocess.call(['bluetoothctl', 'remove', ADDRESS])
         print('disconnect')
         
     

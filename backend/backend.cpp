@@ -21,8 +21,8 @@ Adding contents to the scoreboard:
 
 using namespace std;
 
-const char* sb_PATH = "/home/renin/Documents/Ortho-matryx/backend/score_board/sb";
-const char* cg_PATH = "/home/renin/Documents/Ortho-matryx/backend/color_rand_gen/color";
+const char* sb_PATH = "/home/eldunno/capstone/Ortho-matryx/backend/score_board/sb";
+const char* cg_PATH = "/home/eldunno/capstone/Ortho-matryx/backend/color_rand_gen/color_generator";
 
 int main(int argc, char* argv[]){
 
