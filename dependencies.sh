@@ -56,7 +56,7 @@ fi
 echo -e "${yellow}CREATING .font/ DIRECTORY....${NC}"
 mkdir ~/.fonts/
 echo -e "${yellow}COPYING AtariFontFullVersion-ZJ23.ttf TO .fonts/ DIRECTORY....${NC}"
-cd /home/eldunno/capstone/Ortho-matryx/gui-app/fonts
+cd /home/ellis/Ortho-matryx/gui-app/fonts
 cp AtariFontFullVersion-ZJ23.ttf ~/.fonts
 
 echo -e "${yellow}UPDATING FONTS CACHE....${NC}"
