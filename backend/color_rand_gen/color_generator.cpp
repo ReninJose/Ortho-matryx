@@ -16,9 +16,9 @@ using namespace std;
 // # of buttons
 #define SIZE 9
 
-const char* color_PATH = "/home/eldunno/capstone/Ortho-matryx/backend/color_rand_gen/color_pattern.txt";
+const char* color_PATH = "/home/ellis/Ortho-matryx/backend/color_rand_gen/color_pattern.txt";
 
-const char* cc_PATH = "/home/eldunno/capstone/Ortho-matryx/backend/color_rand_gen/cc.txt";
+const char* cc_PATH = "/home/ellis/Ortho-matryx/backend/color_rand_gen/correct_color.txt";
 
 
 char* shuffle_array(char arr[], int n)

@@ -1,14 +1,26 @@
 # Authors: Ellis Hobbby, Ryan White
-# Version: 2.0
+# Version: 3.0
 
 
 import tkinter as tk
-import asyncio
+import asyncio as io
 import gui
 #from ble import OrthoMatryxBLE
-import menus
-from PIL import Image, ImageTk
-from util import path
+
+from util.timer  import timed
+from util.player import Player
+from util.config import GenericConfig
+from util.color  import DEFAULT, ColorDict
+
+from model.model import Model
+from model.mem   import MemoryGame
+from model.tic   import TicTacToe
+from model.pig   import PigDice
+
+from model.menus import (TitleScreen, MainMenu, GameSelect, 
+AvatarMenu, PlayerName, StartButton, PostGameMenu, HighScoreScreen)
+
+
 
 
 """---------------------------------------------
@@ -33,6 +45,9 @@ USER_INPUTS = (
 
 # Used for adjusting text size ratio
 DEV_SCREEN_WIDTH = 1920
+
+
+FONT = 'Atari Font Full Version'
 
 
 
@@ -62,78 +77,74 @@ class App(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__()
         
-        # Vars for tracking model states
-        self.game_running = False
-        self.quickplay = False
-        self.avatar_index = None
-        self.name = None
-        self.score = 0
-        self.total = 0
-        
-        
         # BLE control Object
         #self.dev = OrthoMatryxBLE()
-        
-        
+            
+        # Vars for tracking model states
+        #self.reset_game_data()
+
         # GUI View objects
-        self.frame = self.frame_init()
-        self.font = self.set_font()
-        self.gui = self.gui_init()
+        self.gui     = self._gui_init()
+        self.avatar  = self.gui.panel_avatars
+        self.view    = GenericConfig(self).view.copy()
         
-        
-        # List ref for event bindings
-        self.binding = []
-        
+        self.model   = None
+        self._model  = {
+            'title-screen': TitleScreen,
+            'main-menu'   : MainMenu,
+            'game-select' : GameSelect,
+            'avatar-menu' : AvatarMenu,
+            'player-name' : PlayerName,
+            'start-button': StartButton,
+            'post-game'   : PostGameMenu,
+            'high-score'  : HighScoreScreen,
+            'memory'      : MemoryGame,
+            'tic-tac-toe' : TicTacToe,
+            'pig-dice'    : PigDice,
+            None : None
+        }
+        Model.ctrl = self
         
         # Create async loop
-        self.loop = asyncio.get_event_loop()
+        self.flag  = io.Event()
+        self.loop  = io.get_event_loop()
+        Model.loop = self.loop
         task = self.loop.create_task(self.run())
+        
         try:
             self.loop.run_until_complete(task)
         except Exception as err:
             print(err)
-        finally:
-            print('done')
-            
 
 
 #---------------------------------------------
     
-#    Initializer: Frame and Canvas View
+#    Initializer: Canvas View
 
-#---------------------------------------------
-
-            
-    def frame_init(self):
-        '''
-        Initialize the main parent frame
-        Frame size based off screen dims
-        
-        :return: tkinter frame
-        
-        '''
-        
-        self.title("Ortho-Matryx Game")
-        
-        # get root screen dims and set root geometry
-        dims = self.winfo_screenwidth(), self.winfo_screenheight()
-        self.geometry("%sx%s" % (dims))
-        
-        # create, pack, update, and return frame
-        frame = tk.Frame(self, bg='black')
-        frame.pack(fill=tk.BOTH, expand=tk.YES)
-        frame.update()
-        return frame
-    
-    
-    def gui_init(self):
+#---------------------------------------------  
+    def _gui_init(self):
         '''
         Initialize canvas display
         
         :return: GUI obj
         
         '''
-        return gui.GUI(self.frame, self.font)
+        self.title("Ortho-Matryx Game")
+        
+        # get root screen dims and set root geometry
+        dims = self.winfo_screenwidth(), self.winfo_screenheight()
+        self.geometry("%sx%s" % (dims))
+        
+        self.width, self.height = dims
+
+        self.config = GenericConfig(self)
+
+        # create, pack, update frame
+        frame = tk.Frame(self, bg='black')
+        frame.pack(fill=tk.BOTH, expand=tk.YES)
+        frame.update()
+
+        return gui.GUI(frame, self)
     
 
 #---------------------------------------------
@@ -141,8 +152,7 @@ class App(tk.Tk):
 #    Canvas Control Functionality
 
 #---------------------------------------------
-
-    def set_font(self, font='Atari Font Full Version', size=35, style='normal'):
+    def set_font(self, font=FONT, size=30, style='normal'):
         '''
         Enables the font settings to be altered.
         Ratios font size based off parent frame
@@ -156,54 +166,94 @@ class App(tk.Tk):
         '''
         
         # create font size ratio
-        screen_width = self.frame.winfo_screenwidth()
+        screen_width = self.width
         size_ratio = screen_width / DEV_SCREEN_WIDTH
         size = int(size_ratio * size)
         
         return (font, size, style)
-    
 
-    async def update_gui(self, configs, color=None, clear=False):
-        '''
-        Control for canvas color and config settings
+               
+            
+    #@timed('orange')
+    async def _show(self, event):
         
-        :param configs: sent as dict containing
-                        configs and canvas item tags
-        :param color: color string for matrix
-                      buttons, default=None
-        :param clear: bool for config clear
-                      sets item state='hidden'
-                      default=False
-                      
-        '''
-                      
-        if color is not None:
-            await self.gui.set_color(color)
-        if configs is not None:
-            self.gui.set_config(configs, clear)
-          
-    
-    async def show_player_info(self, clear=False, remaining=None):
-        '''
-        Control for canvas side panel items
+        await event.wait()
         
-        :param clear: bool for config clear
-                      sets item state='hidden'
-                      default=False
-        :param remaining: player guess remaining
-                          during gameplay
-                          default=None
-        '''
-        await self.gui.set_panel_info(clear, remaining, self.total, self.name, self.avatar_index)
+        await io.gather(self._set_view(), self._set_color(), self._set_info())
         
+        self.flag.clear()
+        self.loop.create_task(self._show(self.flag))       
+                
 
     
-    async def clear_player_info(self):
-        '''
-        Clears canvas side panel items
+    
+    #@timed('purple')
+    async def _set_view(self, **kwargs):
         
+        await io.sleep(1/120)
+
+        for tag, args in self.model.config.items():
+            self.view[tag]['state'] = 'normal'
+            for opt, val in args.items():
+                self.view[tag][opt] = val     
+
+        for key,value in self.view.items():
+            self.gui.itemconfig(key, **value)
+            
+        self.view = GenericConfig(self).reset.copy()
+    
+        
+    #@timed('cyan')    
+    async def _set_color(self):
+
+        await io.sleep(1/120)
+
+        if self.model.color is not None:  
+           for i, letter in enumerate(self.model.color):
+                if letter in ColorDict:
+                    button = ColorDict[letter] 
+                else:
+                    button = DEFAULT
+
+                self.gui.itemconfig( self.gui.button[i],
+                                     state='normal', 
+                                     fill=button )
+        
+    #@timed('blue')      
+    async def _set_info(self):
+
+        await io.sleep(1/120)
+        
+        if self.model.game_run is True:
+                self.gui.itemconfig(**self.model.active_player['TEXT'])
+                self.gui.itemconfig(**self.model.active_player['IMAGE'])
+
+                self.gui.itemconfig('player-rec-clear', state='hidden')
+
+                if self.model.highlight == 1:
+                    self.gui.itemconfig('player-1-rec',state='normal')
+
+                elif self.model.highlight == 2:
+                    self.gui.itemconfig('player-2-rec',state='normal')
+
+        else:
+            self.gui.itemconfig('player-txt-clear', text='', state='hidden')
+            self.gui.itemconfig('player-img-clear', image='', state='hidden')
+            
+
+
+                
+                
+    
+    async def _updater(self):
         '''
-        await self.show_player_info(clear=True)
+        Updates canvas at a rate of self.interval
+        Added to asyncio loop for continuous update
+        '''
+        while True:  
+            self.gui.update()
+            await io.sleep(1/120)
+
         
         
 #---------------------------------------------
@@ -212,7 +262,7 @@ class App(tk.Tk):
 
 #---------------------------------------------
 
-    def set_event_bind(self, buttons, func, dispatch=None):
+    def set_event(self, buttons=None, obj=None, func=None):
         '''
         Binds user inputs to dispatch a specific model
         
@@ -221,13 +271,16 @@ class App(tk.Tk):
         :param dispatch: model object to dispatch on event
         
         '''
-        for key in buttons:
-            if dispatch:
-                self.binding.append(self.bind(key, lambda event: asyncio.ensure_future(func(dispatch))))
-            else:
-                self.binding.append(self.bind(key, lambda event: asyncio.ensure_future(func(event.keysym))))
+        _obj = self._model[obj]
 
-    def remove_event_bind(self):
+        for key in buttons:
+            if obj:
+                self.bind(key, lambda event: _obj(event.keysym))
+            else:
+                self.bind(key, lambda event: func(event.keysym))
+
+
+    def remove_event(self):
         '''
         Removes all button event binds
         
@@ -235,14 +288,10 @@ class App(tk.Tk):
         for binding in USER_INPUTS:
             self.unbind(binding)
 
-    async def obj_dispatch(self, dispatch):
-        '''
-        Dispatches a model object
-        
-        :param dispatch: the model to be created
-        
-        '''
-        dispatch(self)
+
+    def dispatch(self, obj):
+        _obj = self._model[obj]
+        _obj()
         
 
 #---------------------------------------------
@@ -297,15 +346,18 @@ class App(tk.Tk):
         will continously call ble.scan
         
         '''
-        self.loop.create_task(self.gui.updater())
-        menus.TitleScreen(self)
+        self.loop.create_task(self._show(self.flag))
+        self.loop.create_task(self._updater())
+        self.model = TitleScreen(self)
 
         while True:
             await self.ble_scan()
-            await asyncio.sleep(1)
+            await io.sleep(1)
             
         
   
 
             
 app = App()
+
+
