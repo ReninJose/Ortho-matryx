@@ -3,9 +3,8 @@
 
 
 import tkinter as tk
-import asyncio
-from util import color, config, tag, path
 from PIL import Image, ImageTk
+from util.path import AVATAR_PATH
 
 
 """---------------------------------------------
@@ -38,16 +37,14 @@ class GUI(tk.Canvas):
         > Side panels:
             Left, right panels. Text and image split to top, mid, bot positions
     
-    > Items controlled using item tags sent as dictionaries (see tag.py / config.py)
+    > Items controlled using item tags sent as dictionaries (see config.py)
     
     > Asychronous updates every 1/120 seconds
     
     :param parent: tkinter frame obj sent from controller
-    
-    :param interval: time in seconds for screen updates
     '''
     
-    def __init__(self, parent, font, interval=1/120):
+    def __init__(self, parent, controller):
         
         height = parent.winfo_height()
         width = parent.winfo_width()
@@ -56,72 +53,39 @@ class GUI(tk.Canvas):
         super().__init__(parent, width=width, height=height, bg = 'black', highlightthickness=0)
         self.pack()
         
-        self.interval = interval
-        self.font = font
-        print('Font in GUI: ')
-        print(self.font)
+        self.control  = controller
+        self.config   = controller.config.view
+        self.player   = controller.config.player
         
-        
-        clear_settings = [
-            ('button', {'fill': None}),
-            ('background', {'fill': None}), 
-            ('text', {'text': None, 'fill': 'black', 
-                      'font': self.font, 'justify': 'center'}), 
-            ('image', {'image': None})  
-        ]
-        
-        self.clear_config = config.GenericConfig('clear', 'hidden', clear_settings).configs
-    
-        
-        # list reference background items
-        self.background=[]  
-        self.background_txt=[]  
-        self.background_img=[]
-        
-        
-        # list reference for button images
+        # reference for button images
         self.button_avatars=[]
-        
-        # list reference button items
-        self.button=[] 
-        self.button_txt=[] 
-        self.button_img=[]
-        
-        
-        # list reference for panel images
+
+        # reference for panel images
         self.panel_avatars=[]
+
+        self.score_avatars=[]
         
-        # var reference left panel items
-        self.left_rec=None
-        
-        self.left_mid_txt=None
-        self.left_top_txt=None
-        self.left_bot_txt=None
-        
-        self.left_mid_img=None
-        self.left_top_img=None
-        self.left_bot_img=None
-        
-        # var reference right panel items
-        self.right_rec=None
-        
-        self.right_mid_txt=None
-        self.right_top_txt=None
-        self.right_bot_txt=None
-        
-        self.right_mid_img=None
-        self.right_top_img=None
-        self.right_bot_img=None
+        # reference for button id
+        self.button=[] 
+
+        # default font settings
+        self.bg_font   = controller.set_font(style='italic')
+        self.btn_font  = controller.set_font()
+        self.panl_font = controller.set_font(size=18)
+        self.titl_font = controller.set_font(size=25)
+        self.fname, self.fsize, self.fstyle = self.font = controller.set_font()
         
 
         # initate all canvas items
-        self.upload_avatars(width, height)
-        self.create_background_items(width, height)
-        self.create_button_items(width, height)
-        self.create_side_panels(width, height)
+        self._upload_avatars    (width, height)
+        self._create_background (width, height)
+        self._create_highscore  (width, height)
+        self._create_buttons    (width, height)
+        self._create_panels     (width, height)
+
         
         
-    def upload_avatars(self, width, height):
+    def _upload_avatars(self, width, height):
         '''
 
         Upload avatar images and resize accordingly.
@@ -130,21 +94,24 @@ class GUI(tk.Canvas):
         :param width: parent frame width
         :param height: parent frame height
         
-        '''
-        
+        ''' 
         # image size for buttons
-        b_size = int(height / 6)
+        b_size = int(height / 5)
         
         # image size for panels
-        p_size = int((width-height) / 2.5)
+        self.p_size = int((width-height) / 2)
+
+        s_size = int(height / 4)
         
         
         # upload and create panel / button images
         for i in range(6):
-            b_img = (Image.open(path.AVATAR_PATH + str(i) + '.png').resize((b_size,b_size)).convert('RGBA'))
-            p_img = (Image.open(path.AVATAR_PATH + str(i) + '.png').resize((p_size,p_size)).convert('RGBA'))
+            b_img = (Image.open(AVATAR_PATH + str(i) + '.png').resize((b_size,b_size)).convert('RGBA'))
+            p_img = (Image.open(AVATAR_PATH + str(i) + '.png').resize((self.p_size,self.p_size)).convert('RGBA'))
+            s_img = (Image.open(AVATAR_PATH + str(i) + '.png').resize((s_size,s_size)).convert('RGBA'))
             self.button_avatars.append(ImageTk.PhotoImage(b_img))
             self.panel_avatars.append(ImageTk.PhotoImage(p_img))
+            self.score_avatars.append(ImageTk.PhotoImage(s_img))
 
 
         # fill extra list space button_avatars
@@ -154,7 +121,7 @@ class GUI(tk.Canvas):
             self.button_avatars.append(None)
             
             
-    def create_background_items(self, width, height):
+    def _create_background(self, width, height):
         '''
 
         Create canvas background items.
@@ -172,12 +139,10 @@ class GUI(tk.Canvas):
         
         # plot vals for background rect
         x1 = y1 = offset
-        x2 = height + offset
-        y2 = height
+        x2 = height + offset; y2 = height
         
         # plot vals for background text, image
-        x3 = width / 2
-        y3 = height / 2
+        x3 = width / 2; y3 = height / 2
         
         # create tuples for plot vals
         bounds = (x1, y1, x2, y2)
@@ -185,27 +150,75 @@ class GUI(tk.Canvas):
         
         
         # creating background items
-        self.background.append(
-            self.create_rectangle( 
+        self.create_rectangle( 
                 bounds,
-                tags=tag.background 
-            )
+                **self.config['bg']
         )
-        self.background_txt.append(
-            self.create_text( 
-                center, fill='black', 
-                font=self.font, justify='left', 
-                tags=tag.background_txt
-            )
+        self.create_text( 
+            center,
+            **self.config['bg-txt']
         )
-        self.background_img.append(
-            self.create_image(
-                center,
-                tags=tag.background_img 
-            )
+        self.create_image(
+            center,
+            **self.config['bg-img']
         )
+
+    def _create_highscore(self, width, height):
         
-    def create_button_items(self, width, height):
+        _row = 3; _col = 4
+
+        label_y = self.fsize * 4
+        midd_l  = label_y / 2
+
+        cell_x  = width / 4
+        cell_y  = (height-label_y) / 3
+
+        midd_x  = cell_x / 2
+        midd_y  = cell_y / 2
+
+        for col in range(_col):
+
+            x1, y1 = (cell_x*col), 0
+            x2, y2 = (x1+cell_x), label_y
+            dims   = (x1, y1, x2, y2)
+            midd   = (x1+midd_x) , (y1+midd_l)
+
+            self.create_rectangle(dims, **self.config['sb-grid'])
+            
+            self.create_text(midd, **self.config[f'sb-label-{col}'])
+
+
+        tag = [ 'sb-rank-{}', 'sb-name-{}', 'sb-score-{}', 'sb-avatar-{}']
+
+        for row in range(_row):
+            for col in range(_col):
+                
+                _tag_1 = tag[col].format(row)
+                _tag_2 = tag[col].format(row+3)
+                _tag_3 = tag[col].format(row+6)
+                
+                x1, y1 = (cell_x*col), (cell_y*row)+label_y
+                x2, y2 = (x1+cell_x) , (y1+cell_y)
+                x3, y3 = (x1+midd_x) , (y1+midd_y)
+
+                bounds = (x1, y1, x2, y2)
+                center = (x3, y3)
+
+                self.create_rectangle(bounds, **self.config['sb-grid'])
+
+                if col == 3:
+                    self.create_image(center, **self.config[_tag_1])
+                    self.create_image(center, **self.config[_tag_2])
+                    self.create_image(center, **self.config[_tag_3])
+                else:
+                    self.create_text(center, **self.config[_tag_1])
+                    self.create_text(center, **self.config[_tag_2])
+                    self.create_text(center, **self.config[_tag_3])
+                
+            
+
+        
+    def _create_buttons(self, width, height):
         '''
 
         Create canvas button items.
@@ -217,10 +230,12 @@ class GUI(tk.Canvas):
         :param height: parent frame height
         
         '''
+        h_offset = self.fsize * 2
+        height   = height - (h_offset * 2)
         
         # helps center items in square 
         # background based off screen height
-        offset = (width-height) /2
+        w_offset = (width-height) /2
         
         # val for matrix cell dimension
         cell = (height / 3)
@@ -235,9 +250,11 @@ class GUI(tk.Canvas):
         for col in range(COL):
             for row in range(ROW):
                 
-                x1, y1 = (cell*row)+offset, (cell*col)
+                x1, y1 = (cell*row)+w_offset, (cell*col)+h_offset
                 x2, y2 = (x1+cell), (y1+cell)
                 x3, y3 = (x1+midd), (y1+midd)
+
+                y1 += h_offset; y2 += h_offset; y3 += h_offset
 
                 bounds.append((x1, y1, x2, y2))
                 center.append((x3, y3))
@@ -248,28 +265,21 @@ class GUI(tk.Canvas):
             self.button.append( 
                 self.create_oval( 
                     bounds[i],
-                    outline='black',
-                    width=10,
-                    tags=tag.button[i]
+                    **self.config[f'btn-{i}']
                 )
             )
-            self.button_txt.append(
-                self.create_text( 
-                    center[i], fill='black', 
-                    font=self.font, justify='left', 
-                    tags=tag.button_txt[i]
-                )
+            self.create_text( 
+                center[i], 
+                **self.config[f'txt-{i}']
             )
-            self.button_img.append(
-                self.create_image( 
-                    center[i], 
-                    image=self.button_avatars[i],
-                    state='hidden',
-                    tags=tag.button_img[i]
-                )
+            self.create_image( 
+                center[i], 
+                image=self.button_avatars[i],
+                **self.config[f'img-{i}']
             )
+
     
-    def create_side_panels(self, width, height):
+    def _create_panels(self, width, height):
         '''
 
         Create canvas left / right panel items.
@@ -283,200 +293,69 @@ class GUI(tk.Canvas):
         :param height: parent frame height
         
         '''
+        x0 = self.p_size / 2
+        y0 = ((height - self.p_size) / 2) + self.p_size
+
+        x1 = self.fsize * 2
+        y1 = self.fsize * 4
         
-        # x plot val, width from screen
-        # edge to center square
-        width_offset = (width-height) / 2
+        x2 = width - x1
+        y2 = height - y1
+
+        x3 = 10
+        y3 = 10
+
+        x4 = ((width-height)/2) - 10
+        y4 = height - 10
+
+        left_top  = (x1, y1)
+        left_bot  = (x0, y0)
+        left_rec  = (x3, y3, x4, y4)
+
+        self.create_rectangle(
+            left_rec,
+            **self.player['player-1-rec']
+        )  
+        self.create_text(
+            left_top, 
+            **self.player['player-1-txt']
+        ) 
+        self.create_image(
+            left_bot, 
+            **self.player['player-1-img']
+        )
+
+        x0 = width - x0
         
-        # mid y plot vals
-        # 1/4, 1/2, 3/4
-        middle = height / 2
-        top_mid = middle / 2
-        bot_mid = height-(middle/2)
+        x3 = (width - ((width-height)/2)) + 10
+        y3 = 10
+
+        x4 = width - 10
+        y4 = height - 10
         
-        # left panel plot val
-        rec_bounds = (0, 0, width_offset, height)
-        
-        # create left panel
-        self.left_rec = self.create_rectangle(rec_bounds, fill='black')
-        
-        # plot vals for left text, image
-        left_mid = width_offset / 2
-        mid_bounds = (left_mid, middle)
-        top_bounds = (left_mid, top_mid)
-        bot_bounds = (left_mid, bot_mid)
-        
-        # create left panel text, images
-        self.left_mid_txt = self.create_text(mid_bounds,
-                                             fill='white',
-                                             font=self.font)
-        
-        self.left_top_txt = self.create_text(top_bounds,
-                                             fill='white',
-                                             font=self.font)
-        
-        self.left_bot_txt = self.create_text(bot_bounds,
-                                             fill='white',
-                                             font=self.font)
-        
-        self.left_mid_img = self.create_image(mid_bounds, image=None)
-        
-        self.left_top_img = self.create_image(top_bounds, image=None)
-        
-        self.left_bot_img = self.create_image(bot_bounds, image=None)
-        
-        
-        # right zero is starting point
-        # from right edge screen to centered square
-        right_zero = width - width_offset
-        
-        # right panel plot val
-        rec_bounds = (right_zero, 0, width, height)
-        
-        # create right panel
-        self.right_rec = self.create_rectangle(rec_bounds, fill='black')
-        
-        # plot vals for right text, image
-        right_mid = width - left_mid
-        mid_bounds = (right_mid, middle)
-        top_bounds = (right_mid , top_mid)
-        bot_bounds = (right_mid, bot_mid)
-        
-        # create right panel text, images
-        self.right_mid_txt = self.create_text(mid_bounds,
-                                              fill='white',
-                                              font=self.font)
-        
-        self.right_top_txt = self.create_text(top_bounds,
-                                              fill='white',
-                                              font=self.font)
-        
-        self.right_bot_txt = self.create_text(bot_bounds,
-                                              fill='white',
-                                              font=self.font)
-        
-        self.right_mid_img = self.create_image(mid_bounds, image=None)
-        
-        self.right_top_img = self.create_image(top_bounds, image=None)
-        
-        self.right_bot_img = self.create_image(bot_bounds, image=None)
-    
-            
-            
-    
-    async def set_panel_info(self, clear, guess, score, name, img_index):
-        '''
-        Set and clear panel items. Uses direct reference to
-        panel variables, e.g, self.left_panel_txt
-        
-        ** MAY BE CHANGED: Currently panel item positions are
-            - left_top for text info: name, score, guess
-            - left_bot for avatar image
-        ** IF CHANGED UPDATE INFO 
-        
-        :param clear: if True, hides panel items
-        :param guess: number of guesses left in game
-        :param score: player score value
-        :param name: player name
-        :param img_index: chooses what avatar will be shown
-        
-        * params sent by controller
-        '''
-        
-        # helps with concurrency
-        await asyncio.sleep(self.interval)
-        
-        if clear is True:
-            self.itemconfig(self.left_top_txt, state='hidden')
-            self.itemconfig(self.left_bot_img, state='hidden')
-        
-        else:
-            
-            # show avatar if chosen
-            if img_index is not None:
-                img = self.panel_avatars[img_index]
-                self.itemconfig(self.left_bot_img, state='normal', image=img)  
-            
-            if guess is not None:
-                
-                # displayed panel info if quickplay is chosen
-                # e.g, player has not selected avatar and name
-                if name is None:
-                    info = ('SCORE: %s\n\n\nGUESS: %s' % (str(score), str(guess)))
-                
-                # show full info
-                else:
-                    info = ('NAME: %s\n\nSCORE: %s\n\n\nGUESS: %s' % (name, str(score), str(guess)))
-            else:
-                info = ''
-            
-            # set text info
-            font_type, size, style = self.font
-            size -= 10
-            font = (font_type, size, style)
-            self.itemconfig(self.left_top_txt,
-                            state='normal',
-                            text=info,
-                            font=font)
-                            
+        right_top = (x2, y1)
+        right_bot = (x0, y0)
+        right_rec = (x3, y3, x4, y4)
+
+        self.create_rectangle(
+            right_rec,
+            **self.player['player-2-rec'] 
+        ) 
+        self.create_text(
+            right_top,
+            **self.player['player-2-txt']
+        )     
+        self.create_image(
+            right_bot, 
+            **self.player['player-2-img']
+        )
 
 
-    
-    def clear(self):
-        '''
-        Set button and background items to state='hidden 
-        Unpacks dict and containing tags
-        See config.py for more info
-        '''
-        
-        for key,value in self.clear_config.items():
-            self.itemconfig(**value)
+        x = width / 2
+        y = self.fsize * 2
+        top_mid = (x, y)        
 
-
-    def set_config(self, config, clear_screen=False):
-        '''
-        Set button / background text items
-        
-        :param config: itemconfig settings, sent as dict
-        :param clear_screen: resets items if needed
-        '''
-        
-        if clear_screen == True:
-            self.clear()
-        for key,value in config.items():
-            self.itemconfig(**value)
-
-
-    async def set_color(self, color_string):
-        '''
-        Sets button matrix colors.
-        Refs dict containing colors (see color.py)
-        
-        :param color_string: 9 character string
-            compares characters to color dict
-        '''
-        
-        # helps with concurrency
-        await asyncio.sleep(self.interval)
-        
-        # clears items before setting
-        self.clear()
-        
-        # compare color_string to dict
-        for i, letter in enumerate(color_string):
-            if letter in color.ColorDict:
-                button_color = color.ColorDict[letter] 
-            else:
-                button_color = color.ColorDict['default color']
-            self.itemconfig(self.button[i],fill=button_color, state='normal')
-
-
-    async def updater(self):
-        '''
-        Updates canvas at a rate of self.interval
-        Added to asyncio loop for continuous update
-        '''
-        
-        while True:  
-            self.update()
-            await asyncio.sleep(self.interval)
+        self.create_text(
+            top_mid,
+            **self.config['title']
+        )
