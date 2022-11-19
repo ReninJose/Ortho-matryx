@@ -24,6 +24,7 @@ using namespace std;
 const char* sb_PATH = "/home/eldunno/capstone/Ortho-matryx/backend/score_board/sb";
 const char* cg_PATH = "/home/eldunno/capstone/Ortho-matryx/backend/color_rand_gen/color_generator";
 
+
 int main(int argc, char* argv[]){
 
     int status;
@@ -32,18 +33,20 @@ int main(int argc, char* argv[]){
     // Initiate code for scoreboard
     if (command.compare("sb") == 0) {
         
-        if (argc != 4) {
+        if (argc != 5) {
             cout << "Invalid # of argument count" << endl;
             return 1;
         }
 
         const char* id;
         const char* score;
+        const char* avatar;
 
         id = argv[2];
         score = argv[3];
+        avatar = argv[4];
 
-        if(execl(sb_PATH, "sb", id, score , NULL) < 0) {
+        if(execl(sb_PATH, "sb", id, score , avatar, NULL) < 0) {
             perror("Execl failed");
             return 1;
         }    
@@ -59,4 +62,6 @@ int main(int argc, char* argv[]){
 
     return 0;
 }
+    
+
     

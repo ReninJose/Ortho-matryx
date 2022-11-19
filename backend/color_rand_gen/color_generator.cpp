@@ -18,7 +18,7 @@ using namespace std;
 
 const char* color_PATH = "/home/eldunno/capstone/Ortho-matryx/backend/color_rand_gen/color_pattern.txt";
 
-const char* cc_PATH = "/home/eldunno/capstone/Ortho-matryx/backend/color_rand_gen/cc.txt";
+const char* cc_PATH = "/home/eldunno/capstone/Ortho-matryx/backend/color_rand_gen/correct_color.txt";
 
 
 char* shuffle_array(char arr[], int n)
@@ -77,6 +77,3 @@ int main() {
 
     return 0;
 }
-
-
-   

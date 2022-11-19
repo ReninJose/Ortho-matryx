@@ -16,6 +16,7 @@ class player {
     public:
         string name;
         int score;
+        int avatar;
 };
 
 // Ascending Ordering the list
@@ -51,7 +52,7 @@ void rearrage_import(forward_list<player> pool) {
 
     //Rewrite text file to contain top 10 descending scores.
     for(auto itr: pool) {
-        sb_rewrite << itr.name << " " << itr.score << endl;
+        sb_rewrite << itr.name << " " << itr.score << " " << itr.avatar << endl;
     }
        
     sb_rewrite.close();
@@ -65,6 +66,7 @@ int main(int argc, char* argv[]){
 
     string player_name;
     int player_score;
+    int player_avatar;
     string score_line;
     
     ifstream sb_read(PATH, ios::app);
@@ -79,7 +81,7 @@ int main(int argc, char* argv[]){
     // Check if scoreboard is empty
     if (!getline(sb_read, score_line)) {
         // Write first content on the board
-        sb_write << argv[1] << " " << stoi(argv[2]) << endl;
+        sb_write << argv[1] << " " << stoi(argv[2]) << " " << stoi(argv[3]) << endl;
         sb_read.close();
         sb_write.close();
         return 0; 
@@ -96,11 +98,14 @@ int main(int argc, char* argv[]){
             p_copy.name = player_name;
             ss >> player_score;
             p_copy.score = player_score;
+            ss >> player_avatar;
+            p_copy.avatar = player_avatar;
             player_list.push_front(p_copy);
         }
         // Load in the newest player to the linked list
         p_copy.name = argv[1];
         p_copy.score = stoi(argv[2]);
+        p_copy.avatar = stoi(argv[3]);
         player_list.push_front(p_copy);
         
         sb_write.close();
