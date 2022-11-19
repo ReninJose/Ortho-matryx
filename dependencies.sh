@@ -36,6 +36,17 @@ g++ -o sb sb_generator.cpp
 if [ ! -f "sb.txt" ]; then
     echo -e "${yellow}MANIFESTING A NEW SB.TXT....${NC}"
     touch sb.txt
+    echo -e "${yellow}WRITING DEFAULT HIGHSCORES....${NC}"
+    ./sb BOT 50 5
+    ./sb OII 40 1
+    ./sb PIG 30 2
+    ./sb ELL 20 4
+    ./sb DEL 15 3
+    ./sb CON 10 0
+    ./sb RYN 8 5
+    ./sb REN 5 0
+    ./sb DEV 2 1
+    
 fi
 
 cd ..
@@ -56,7 +67,9 @@ fi
 echo -e "${yellow}CREATING .font/ DIRECTORY....${NC}"
 mkdir ~/.fonts/
 echo -e "${yellow}COPYING AtariFontFullVersion-ZJ23.ttf TO .fonts/ DIRECTORY....${NC}"
-cd /home/eldunno/capstone/Ortho-matryx/gui-app/fonts
+cd ..
+cd ..
+cd gui-app/fonts
 cp AtariFontFullVersion-ZJ23.ttf ~/.fonts
 
 echo -e "${yellow}UPDATING FONTS CACHE....${NC}"
