@@ -7,8 +7,7 @@ import random
 
 from model.model import Model, KEY_TO_NUM
 from util.color  import DEFAULT
-from util.path   import (BACKEND_PATH, BACKEND_ARG_COLOR, 
-COLOR_PATTERN, CORRECT_COLOR)
+from util.path   import *
 
 
 """---------------------------------------------
@@ -43,7 +42,7 @@ class MemoryGame(Model):
         
         self.guess_event = [{'buttons': self.GUESS, 'func': self.guess}]
 
-        super().__init__(config, color)
+        super().__init__(config, color, music=False)
 
         # update controller game running state
         Model.game_run = True
@@ -65,13 +64,15 @@ class MemoryGame(Model):
         Read random pattern and correct color from file
         
         '''
-        subprocess.run([BACKEND_PATH, BACKEND_ARG_COLOR])  
+        subprocess.run([BACKEND_PATH, BACKEND_ARG_COLOR, MAIN_DIR])  
         
         pattern_file = open(COLOR_PATTERN, 'r')
         correct_file = open(CORRECT_COLOR, 'r')
 
         self.full = pattern_file.readline().rstrip('\n')
         self.win  = correct_file.readline().rstrip('\n')
+        
+        self.full = self.full[:9]
         
         print(f'full pattern = {self.full}')
         print(f'full pattern = {self.win}')

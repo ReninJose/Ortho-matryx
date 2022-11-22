@@ -4,9 +4,12 @@
 
 import tkinter as tk
 import asyncio as io
+import pygame.mixer as mixer
+mixer.init()
+
+
 import gui
-import threading
-from playsound import playsound
+
 #from ble import OrthoMatryxBLE
 
 from util.timer  import timed
@@ -52,6 +55,18 @@ DEV_SCREEN_WIDTH = 1920
 
 FONT = 'Atari Font Full Version'
 
+B1_WAV = SOUNDS + 'B1.wav'
+B2_WAV = SOUNDS + 'B2.wav'
+B3_WAV = SOUNDS + 'B3.wav'
+B4_WAV = SOUNDS + 'B4.wav'
+B5_WAV = SOUNDS + 'B5.wav'
+B6_WAV = SOUNDS + 'B6.wav'
+B7_WAV = SOUNDS + 'B7.wav'
+B8_WAV = SOUNDS + 'B8.wav'
+B9_WAV = SOUNDS + 'B9.wav'
+THEME_WAV = SOUNDS + 'Theme.wav'
+
+
 
 
 class App(tk.Tk):
@@ -92,6 +107,8 @@ class App(tk.Tk):
         self.score_avatar = self.gui.score_avatars
         self.view    = GenericConfig(self).view.copy()
         
+        self.bind('<Destroy>', self.cleanup)
+        
         self.model   = None
         self._model  = {
             'title-screen': TitleScreen,
@@ -110,16 +127,24 @@ class App(tk.Tk):
         Model.ctrl = self
         
         self.sounds = {
-            'q': SOUNDS + 'B1.wav',
-            'w': SOUNDS + 'B2.wav',
-            'e': SOUNDS + 'B3.wav',
-            'a': SOUNDS + 'B4.wav',
-            's': SOUNDS + 'B5.wav',
-            'd': SOUNDS + 'B6.wav',
-            'z': SOUNDS + 'B7.wav',
-            'x': SOUNDS + 'B8.wav',
-            'c': SOUNDS + 'B9.wav',
+            'q': mixer.Sound(B1_WAV),
+            'w': mixer.Sound(B2_WAV),
+            'e': mixer.Sound(B3_WAV),
+            'a': mixer.Sound(B4_WAV),
+            's': mixer.Sound(B5_WAV),
+            'd': mixer.Sound(B6_WAV),
+            'z': mixer.Sound(B7_WAV),
+            'x': mixer.Sound(B8_WAV),
+            'c': mixer.Sound(B9_WAV),
         }
+        
+        self.button_mixer = mixer.Channel(1)
+        self.button_volume = 0.75
+        
+        self.music = mixer.music
+        self.music.load(THEME_WAV)
+        self.music_volume = 0.5  
+        self.music_playing = False        
         
         # Create async loop
         self.flag  = io.Event()
@@ -129,9 +154,23 @@ class App(tk.Tk):
         
         try:
             self.loop.run_until_complete(task)
-        except Exception as err:
-            print(err)
-
+        except io.CancelledError as err:  
+            pass
+        finally:
+            self.loop.close()
+            
+            
+    def cleanup(self, event):
+        
+        self.button_mixer.stop()
+        self.music.stop()
+     
+        for task in io.all_tasks():
+            try:
+                task.cancel()
+            except io.CancelledError as err:  
+                pass 
+            
 
 #---------------------------------------------
     
@@ -242,16 +281,16 @@ class App(tk.Tk):
         
         if self.model.game_run is True:
 
-                self.gui.itemconfig(**self.model.active_player['TEXT'])
-                self.gui.itemconfig(**self.model.active_player['IMAGE'])
+            self.gui.itemconfig(**self.model.active_player['TEXT'])
+            self.gui.itemconfig(**self.model.active_player['IMAGE'])
 
-                self.gui.itemconfig('player-rec-clear', state='hidden')
+            self.gui.itemconfig('player-rec-clear', state='hidden')
 
-                if self.model.highlight == 1:
-                    self.gui.itemconfig('player-1-rec',state='normal')
+            if self.model.highlight == 1:
+                self.gui.itemconfig('player-1-rec',state='normal')
 
-                elif self.model.highlight == 2:
-                    self.gui.itemconfig('player-2-rec',state='normal')
+            elif self.model.highlight == 2:
+                self.gui.itemconfig('player-2-rec',state='normal')
 
         else:
             self.gui.itemconfig('player-txt-clear', text='', state='hidden')
@@ -277,9 +316,22 @@ class App(tk.Tk):
 #---------------------------------------------
 
     def button_sounds(self, key):
-        threading.Thread(target=playsound, args=(self.sounds[key],), daemon=True).start()
-        print(threading.enumerate())
+        self.button_mixer.set_volume(self.button_volume)
+        self.button_mixer.play(self.sounds[key])
         
+              
+                
+    def theme_song(self, play=False):
+        
+        self.music.set_volume(self.music_volume)
+        
+        if not play and self.music.get_busy():
+            self.music.fadeout(2000)
+            
+        elif not self.music.get_busy() and play:
+            self.music.play(loops=-1)
+        
+                     
 
     def set_event(self, buttons=None, obj=None, func=None):
         '''
@@ -291,6 +343,7 @@ class App(tk.Tk):
         
         '''
         _obj = self._model[obj]
+        
 
         for key in buttons:
             if obj:

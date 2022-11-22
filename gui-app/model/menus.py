@@ -5,7 +5,7 @@ import asyncio as io
 import subprocess
 
 from model.model import Model, KEY_TO_NUM, LETTERS
-from util.path   import BACKEND_PATH, BACKEND_ARG_SCOREBOARD, SCOREBOARD
+from util.path   import *
 
 
 
@@ -53,7 +53,7 @@ class TitleScreen(Model):
 
         Model.reset_game_data()
 
-        super().__init__(config, color, event)
+        super().__init__(config, color, event, music=False)
 
        
 #-----------------------------------------------------
@@ -92,7 +92,7 @@ class MainMenu(Model):
         
         Model.reset_game_data()
 
-        super().__init__(config, color, event)
+        super().__init__(config, color, event, music=True)
         
 
 
@@ -503,7 +503,7 @@ class PostGameMenu(Model):
                 self.write_score(name, score, avatar)
         
 
-        super().__init__(config, color, event)
+        super().__init__(config, color, event, True)
 
         if Model.multiplayer == True:
             self.loop.create_task(self.player_info())
@@ -512,7 +512,7 @@ class PostGameMenu(Model):
 
     def write_score(self, name, score, avatar):
         subprocess.run([ BACKEND_PATH, 
-                         BACKEND_ARG_SCOREBOARD, 
+                         BACKEND_ARG_SCOREBOARD, MAIN_DIR,
                          name, str(score), str(avatar) ])    
 
 

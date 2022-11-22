@@ -1,5 +1,5 @@
-// Author: Renin Kingsly Jose, Delbert Edric
-// Rev 1.2
+// Author: Renin Kingsly Jose, Delbert Edric, Ellis Hobby
+// Rev 1.3
 
 #include<bits/stdc++.h>
 #include<iostream>
@@ -8,8 +8,7 @@
 
 using namespace std;
 
-// NOTE: PATH needs to be changed when importing the code to rapsberry pi. 
-const char* PATH = "/home/eldunno/capstone/Ortho-matryx/backend/score_board/sb.txt";
+
 
 // To group player's attributes
 class player {
@@ -30,9 +29,9 @@ bool D_sorter(player a, player b) {
 }
 
 // Rearrange and import data back to file
-void rearrage_import(forward_list<player> pool) {
+void rearrage_import(forward_list<player> pool, const char* path) {
     
-    ofstream sb_rewrite(PATH, ios::trunc);
+    ofstream sb_rewrite(path, ios::trunc);
     int size = 0;
 
     // Find # of contents of scoreboard
@@ -60,6 +59,10 @@ void rearrage_import(forward_list<player> pool) {
 }
 
 int main(int argc, char* argv[]){
+    
+    string main_dir = argv[4];
+    const char* PATH;
+    PATH = main_dir.append("backend/score_board/sb.txt").c_str();
 
     forward_list<player> player_list;
     player p_copy;
@@ -111,7 +114,7 @@ int main(int argc, char* argv[]){
         sb_write.close();
         
         // Rearrange and import data 
-        rearrage_import(player_list);  
+        rearrage_import(player_list, PATH);  
         sb_read.close();
         return 0;
     }

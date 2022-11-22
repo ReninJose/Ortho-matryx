@@ -32,7 +32,7 @@ class TicTacToe(Model):
 
         color = None
 
-        super().__init__(config, color)
+        super().__init__(config, color, music=False)
 
         self.pick_event = [{'buttons': self.SPOT, 'func': self.pick}]
 

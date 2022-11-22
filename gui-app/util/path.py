@@ -17,15 +17,25 @@ import os
 
 CWD = os.getcwd()
 
+print(CWD)
+
+if CWD[-3:] != 'app':
+    print('adding gui-app')
+    CWD = os.path.join(CWD, 'gui-app')
+    
+
 AVATAR_PATH = os.path.join(CWD, 'images/')
 SOUNDS = os.path.join(CWD, 'sounds/')
+
+print(SOUNDS)
 
 
 MAIN_DIR = CWD[:CWD.rfind('gui')]
 BACKEND_DIR = os.path.join(MAIN_DIR, 'backend')
 
-
+print(MAIN_DIR)
 print(BACKEND_DIR)
+
 
 BACKEND_PATH = os.path.join(BACKEND_DIR, 'backend')
 BACKEND_ARG_COLOR = 'cg'

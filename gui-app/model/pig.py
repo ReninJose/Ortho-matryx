@@ -35,7 +35,7 @@ class PigDice(Model):
         
         color = None
 
-        super().__init__(config, color)
+        super().__init__(config, color, music=False)
 
         ROLL = ['<s>']
         self.roll_event = [{'buttons': ROLL, 'func': self.roll}]

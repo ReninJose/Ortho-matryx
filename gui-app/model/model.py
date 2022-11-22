@@ -44,10 +44,11 @@ class Model:
     ctrl = None
     loop = None
 
-    def __init__(self, config, color, event=[]):
+    def __init__(self, config, color, event=[], music=None):
         self.config = config
         self.event  = event
         self.color  = color
+        self.music  = music
         self._start()
 
     def _start(self):
@@ -55,6 +56,7 @@ class Model:
         self._clear_event()
         self._view()
         self._event()
+        self._song()
 
     def update(self):
         self._view()
@@ -72,6 +74,11 @@ class Model:
                 
     def _event(self):
         for E in self.event: self.ctrl.set_event(**E)
+        
+    def _song(self):
+        print(self.music)
+        if self.music != None:
+            self.ctrl.theme_song(self.music)
 
     @classmethod
     def player_avatar(cls, index):
