@@ -20,7 +20,7 @@ from util.path   import *
 ---------------------------------------------"""
 class MemoryGame(Model):
 
-    DELAY = 0.5
+    DELAY = 1
     LOOPS = 3
 
     GUESS = [
@@ -40,7 +40,7 @@ class MemoryGame(Model):
 
         color = None
         
-        self.guess_event = [{'buttons': self.GUESS, 'func': self.guess}]
+        self.guess_event = {**dict.fromkeys(self.GUESS, self.guess)}
 
         super().__init__(config, color, music=False)
 
@@ -73,9 +73,6 @@ class MemoryGame(Model):
         self.win  = correct_file.readline().rstrip('\n')
         
         self.full = self.full[:9]
-        
-        print(f'full pattern = {self.full}')
-        print(f'full pattern = {self.win}')
 
         pattern_file.close()
         correct_file.close()

@@ -34,7 +34,7 @@ class TicTacToe(Model):
 
         super().__init__(config, color, music=False)
 
-        self.pick_event = [{'buttons': self.SPOT, 'func': self.pick}]
+        self.pick_event = {**dict.fromkeys(self.SPOT, self.pick)}
 
         self.loop.create_task(self.run())
 

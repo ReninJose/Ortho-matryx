@@ -20,7 +20,11 @@ cd $MAIN_DIR
 
 if [ ! -f "installed.txt" ]; then
 
-	cd /etc/xdg/autostart
+	chmod 0777 startup.sh
+	chmod 0777 clean.sh
+	chmod 0777 dependencies.sh
+
+    cd /etc/xdg/autostart
 	sudo touch display.desktop
 	ls
 	
@@ -31,16 +35,16 @@ if [ ! -f "installed.txt" ]; then
 	
 	cd $MAIN_DIR
 	echo -e "${green}CLEANING DIRECTORY...${NC}"
-	bash $CLEAN_SCRIPT
+	sudo bash $CLEAN_SCRIPT
 	
 	echo -e "${green}INSTALLING DEPENDENCIES...${NC}"
-	bash $DEPENDENCIES_SCRIPT
+	sudo bash $DEPENDENCIES_SCRIPT
 	
 	echo -e "${green}INSTALL COMPLETE...${NC}"
 	touch "installed.txt"
 	echo "Install Complete" >> installed.txt
 	
-	echo -e "${green}RUNNING GAME...${NC}"
-	python3 $APPLICATION
+	echo -e "${green}RESTARTING DEVICE...${NC}"
+	sudo reboot now
 	
 fi

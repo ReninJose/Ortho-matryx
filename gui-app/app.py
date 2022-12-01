@@ -10,13 +10,13 @@ mixer.init()
 
 import gui
 
-#from ble import OrthoMatryxBLE
+from ble import BLE
 
 from util.timer  import timed
 from util.player import Player
 from util.config import GenericConfig
 from util.color  import DEFAULT, ColorDict
-from util.path   import SOUNDS
+from util.path   import *
 
 from model.model import Model
 from model.mem   import MemoryGame
@@ -55,18 +55,6 @@ DEV_SCREEN_WIDTH = 1920
 
 FONT = 'Atari Font Full Version'
 
-B1_WAV = SOUNDS + 'B1.wav'
-B2_WAV = SOUNDS + 'B2.wav'
-B3_WAV = SOUNDS + 'B3.wav'
-B4_WAV = SOUNDS + 'B4.wav'
-B5_WAV = SOUNDS + 'B5.wav'
-B6_WAV = SOUNDS + 'B6.wav'
-B7_WAV = SOUNDS + 'B7.wav'
-B8_WAV = SOUNDS + 'B8.wav'
-B9_WAV = SOUNDS + 'B9.wav'
-THEME_WAV = SOUNDS + 'Theme.wav'
-
-
 
 
 class App(tk.Tk):
@@ -94,76 +82,55 @@ class App(tk.Tk):
     
     def __init__(self, *args, **kwargs):
         super().__init__()
-        
-        # BLE control Object
-        #self.dev = OrthoMatryxBLE()
-            
-        # Vars for tracking model states
-        #self.reset_game_data()
 
-        # GUI View objects
-        self.gui     = self._gui_init()
-        self.panel_avatar = self.gui.panel_avatars
-        self.score_avatar = self.gui.score_avatars
-        self.view    = GenericConfig(self).view.copy()
-        
+        # Initialize
+        self._gui_init()
+        self._model_init()
+        self._sound_init()
+
+        # Bind cleanup on prog win closed
         self.bind('<Destroy>', self.cleanup)
+        self.bind('<Escape>', lambda event: self.destroy())
         
-        self.model   = None
-        self._model  = {
-            'title-screen': TitleScreen,
-            'main-menu'   : MainMenu,
-            'game-select' : GameSelect,
-            'avatar-menu' : AvatarMenu,
-            'player-name' : PlayerName,
-            'start-button': StartButton,
-            'post-game'   : PostGameMenu,
-            'high-score'  : HighScoreScreen,
-            'memory'      : MemoryGame,
-            'tic-tac-toe' : TicTacToe,
-            'pig-dice'    : PigDice,
-            None : None
-        }
-        Model.ctrl = self
+        # aysnc event flags
+        self.show_flag  = io.Event()
+        self.idle_flag = io.Event()
+        self.active_flag = io.Event()
         
-        self.sounds = {
-            'q': mixer.Sound(B1_WAV),
-            'w': mixer.Sound(B2_WAV),
-            'e': mixer.Sound(B3_WAV),
-            'a': mixer.Sound(B4_WAV),
-            's': mixer.Sound(B5_WAV),
-            'd': mixer.Sound(B6_WAV),
-            'z': mixer.Sound(B7_WAV),
-            'x': mixer.Sound(B8_WAV),
-            'c': mixer.Sound(B9_WAV),
-        }
-        
-        self.button_mixer = mixer.Channel(1)
-        self.button_volume = 0.75
-        
-        self.music = mixer.music
-        self.music.load(THEME_WAV)
-        self.music_volume = 0.5  
-        self.music_playing = False        
-        
-        # Create async loop
-        self.flag  = io.Event()
+        # get main loop
         self.loop  = io.get_event_loop()
+
+        # set model loop
         Model.loop = self.loop
-        task = self.loop.create_task(self.run())
-        
+
+        # BLE control obj
+        # send loop and connect startup color (main menu)
+        self.ble = BLE(self, self.loop, 'GxGxBxRxW')
+
+        # being program loop, handle errors, clean shutdown
         try:
-            self.loop.run_until_complete(task)
+            self.loop.run_until_complete(self.loop.create_task(self.run()))
         except io.CancelledError as err:  
             pass
         finally:
             self.loop.close()
-            
-            
+
+
+#---------------------------------------------
+    
+#    Cleanup Sequence
+
+#---------------------------------------------          
     def cleanup(self, event):
-        
+        '''
+            on program shutdown:
+            stop button and music sounds
+            disconnect ble device
+            cancel any pending async tasks
+        '''
         self.button_mixer.stop()
         self.music.stop()
+        self.loop.create_task(self.ble.disconnect())
      
         for task in io.all_tasks():
             try:
@@ -181,26 +148,105 @@ class App(tk.Tk):
         '''
         Initialize canvas display
         
-        :return: GUI obj
-        
         '''
+        # set main win title
         self.title("Ortho-Matryx Game")
         
         # get root screen dims and set root geometry
-        dims = self.winfo_screenwidth(), self.winfo_screenheight()
-        self.geometry("%sx%s" % (dims))
-        
-        self.width, self.height = dims
+        self.width, self.height = self.winfo_screenwidth(), self.winfo_screenheight()
+        self.geometry("%sx%s" % (self.width, self.height))
+        self.attributes('-fullscreen', True)
 
+        # help with config settings
         self.config = GenericConfig(self)
+        self.view  = GenericConfig(self).view.copy()
 
         # create, pack, update frame
         frame = tk.Frame(self, bg='black')
         frame.pack(fill=tk.BOTH, expand=tk.YES)
         frame.update()
+        
+        # ref to GUI canvas objs
+        self.gui = gui.GUI(frame, self)
 
-        return gui.GUI(frame, self)
+        # ref for different avatar placements
+        self.panel_avatar = self.gui.panel_avatars
+        self.score_avatar = self.gui.score_avatars
+
+        # Ref for current color of GUI buttons
+        self.color = ''
     
+
+
+#---------------------------------------------
+    
+#    Initializer: Main/Sub Model 
+
+#---------------------------------------------  
+    def _model_init(self):
+    
+        # Ref for GUI Model
+        self.model = None
+
+        # Template for GUI Model objs
+        self.template  = {
+            'title-screen': TitleScreen,
+            'main-menu'   : MainMenu,
+            'game-select' : GameSelect,
+            'avatar-menu' : AvatarMenu,
+            'player-name' : PlayerName,
+            'start-button': StartButton,
+            'post-game'   : PostGameMenu,
+            'high-score'  : HighScoreScreen,
+            'memory'      : MemoryGame,
+            'tic-tac-toe' : TicTacToe,
+            'pig-dice'    : PigDice,
+            None : None
+        }
+
+        # Send self for main model controller
+        Model.ctrl = self
+
+        # templates are sub models
+        Model.sub  = self.template
+
+        # Dict for keypress events
+        # Will dispatch model obj and funcs
+        self.event_dict = {}
+
+
+
+#---------------------------------------------
+    
+#    Initializer: Main/Sub Model 
+
+#---------------------------------------------  
+    def _sound_init(self):
+        
+        # dict for button sounds
+        # see util.path.py for B1_WAV.. etc
+        self.sounds = {
+            'q': mixer.Sound(B1_WAV),
+            'w': mixer.Sound(B2_WAV),
+            'e': mixer.Sound(B3_WAV),
+            'a': mixer.Sound(B4_WAV),
+            's': mixer.Sound(B5_WAV),
+            'd': mixer.Sound(B6_WAV),
+            'z': mixer.Sound(B7_WAV),
+            'x': mixer.Sound(B8_WAV),
+            'c': mixer.Sound(B9_WAV),
+        }
+        
+        # set button channel and vol
+        self.button_mixer = mixer.Channel(1)
+        self.button_volume = 0.75
+        
+        # set/load music and vol
+        self.music = mixer.music
+        self.music.load(THEME_WAV)
+        self.music_volume = 0.5    
+
+
 
 #---------------------------------------------
     
@@ -230,17 +276,15 @@ class App(tk.Tk):
                
             
     #@timed('orange')
-    async def _show(self, event):
+    async def _show(self):
         
-        await event.wait()
+        await self.show_flag.wait()
         
         await io.gather(self._set_view(), self._set_color(), self._set_info())
         
-        self.flag.clear()
-        self.loop.create_task(self._show(self.flag))       
+        self.show_flag.clear()
+        self.loop.create_task(self._show())       
                 
-
-    
     
     #@timed('purple')
     async def _set_view(self, **kwargs):
@@ -262,9 +306,16 @@ class App(tk.Tk):
     async def _set_color(self):
 
         await io.sleep(1/120)
+        
+        if self.color != self.model.color:
+            if self.model.color == None: 
+                self.loop.create_task(self.ble.send_data('XXXXXXXXX'))
+            else:
+                self.loop.create_task(self.ble.send_data(self.model.color))
+            self.color = self.model.color
 
-        if self.model.color is not None:  
-           for i, letter in enumerate(self.model.color):
+        if self.model.color is not None:    
+            for i, letter in enumerate(self.model.color):
                 if letter in ColorDict:
                     button = ColorDict[letter] 
                 else:
@@ -273,7 +324,7 @@ class App(tk.Tk):
                 self.gui.itemconfig( self.gui.button[i],
                                      state='normal', 
                                      fill=button )
-        
+                    
     #@timed('blue')      
     async def _set_info(self):
 
@@ -307,17 +358,22 @@ class App(tk.Tk):
             self.gui.update()
             await io.sleep(1/120)
 
-        
-        
+
 #---------------------------------------------
     
-#    Event Binding Functionality
+#    Sound Control Functionality
 
 #---------------------------------------------
 
     def button_sounds(self, key):
         self.button_mixer.set_volume(self.button_volume)
-        self.button_mixer.play(self.sounds[key])
+        
+        # attempt to play relevant sound from key
+        # key obtained from ble notification
+        try:
+            self.button_mixer.play(self.sounds[key])
+        except:
+            pass
         
               
                 
@@ -331,80 +387,28 @@ class App(tk.Tk):
         elif not self.music.get_busy() and play:
             self.music.play(loops=-1)
         
-                     
-
-    def set_event(self, buttons=None, obj=None, func=None):
-        '''
-        Binds user inputs to dispatch a specific model
         
-        :param buttons: the inputs to bind
-        :param func: the function to call on button event
-        :param dispatch: model object to dispatch on event
-        
-        '''
-        _obj = self._model[obj]
-        
+#---------------------------------------------
+    
+#    Event Binding Functionality
 
-        for key in buttons:
-            if obj:
-                self.bind(key, lambda event: _obj(event.keysym))
-            else:
-                self.bind(key, lambda event: func(event.keysym))
-            
-            self.bind(key, lambda event: self.button_sounds(event.keysym), add='+')
+#---------------------------------------------
 
-
-    def remove_event(self):
+    def model_event(self, key):
         '''
-        Removes all button event binds
-        
+            event keys retrieved from
+            ble notification data
         '''
-        for binding in USER_INPUTS:
-            self.unbind(binding)
+        event_key = f'<{key}>'
+        if event_key in self.event_dict:
+            event = self.event_dict[event_key]
+            event(key)    
+        self.button_sounds(key)
 
 
     def dispatch(self, obj):
-        _obj = self._model[obj]
-        _obj()
-        
-
-#---------------------------------------------
-    
-#    BLE Functionality
-
-#---------------------------------------------
-
-    async def ble_tx(self, color_string):
-        '''
-        BLE TX for color data
-        
-        :param color_string: the color data
-        
-        '''
-        # Comment below for dev w.o BLE
-        #self.dev.tx_rgb(color_string)
-        pass
-    
-    async def ble_scan(self):
-        '''
-        BLE Scan and Connect:
-        Continuosly scans for peripheral
-        Once found, attempts to connect
-        and listens for incoming RX data
-        
-        '''
-        # Comment below for dev w.o BLE
-        """
-        scan = await self.dev.scan()
-        if scan:
-            await self.dev.connect()
-            
-            while self.dev.status():
-                await asyncio.sleep(5)
-        else:
-            menus.TitleScreen(self)
-        """
-        pass
+        self.template[obj]()
+               
             
             
 #---------------------------------------------
@@ -416,22 +420,24 @@ class App(tk.Tk):
     async def run(self):
         '''
         Creates the main asycio loop
-        If not peripheral connected
-        will continously call ble.scan
         
         '''
-        self.loop.create_task(self._show(self.flag))
+        self.loop.create_task(self._show())
         self.loop.create_task(self._updater())
-        self.model = TitleScreen(self)
-
+        
         while True:
-            await self.ble_scan()
-            await io.sleep(1)
+            
+            # these flags are set and cleared by ble class
+            # helps synchonize gui to ble controller
+            self.model = TitleScreen()
+            await self.idle_flag.wait()
+            
+            self.model = MainMenu()
+            await self.active_flag.wait()
             
         
   
-
-            
+        
 app = App()
 
 

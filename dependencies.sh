@@ -26,8 +26,8 @@ sudo apt install python3 -y
 sudo apt install python3-pil python3-pil.imagetk -y
 sudo apt-get install python-dev -y
 sudo apt-get install python3-dev -y  
-pip install bleak
-pip install pygame
+sudo pip install bleak
+sudo pip install pygame
 
 # ---- FOR C/C++ ----#
 echo -e "${green}INCLUDING C/C++ PACKAGES....${NC}"

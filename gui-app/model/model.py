@@ -42,7 +42,9 @@ class Model:
     highlight = None
 
     ctrl = None
+    sub  = None
     loop = None
+    
 
     def __init__(self, config, color, event=[], music=None):
         self.config = config
@@ -63,20 +65,20 @@ class Model:
         self._event()
 
     def _view(self): 
-        self.ctrl.flag.set()
+        self.ctrl.show_flag.set()
 
     def clear_event(self):
         self.event = []
-        self.ctrl.remove_event()
+        self.ctrl.event_dict = self.event
 
     def _clear_event(self):
-        self.ctrl.remove_event()
+        self.ctrl.event_dict = {}
                 
     def _event(self):
-        for E in self.event: self.ctrl.set_event(**E)
+        self.ctrl.event_dict = self.event
+        #for E in self.event: self.ctrl.set_event(**E)
         
     def _song(self):
-        print(self.music)
         if self.music != None:
             self.ctrl.theme_song(self.music)
 
@@ -96,8 +98,12 @@ class Model:
         return cls.ctrl.set_font(size=size, style=style)
 
     @classmethod
-    def new_model(cls, obj):
-        cls.ctrl.dispatch(obj)
+    def new_model(cls, new, *args, **kwargs):
+        cls.sub[new]()
+        
+    @classmethod
+    def new_game(cls, *args, **kwargs):
+        cls.sub[cls.game_type]()
 
     @classmethod
     def reset_game_data(cls):
@@ -115,3 +121,7 @@ class Model:
         cls.computer.info['avatar'] = cls.ctrl.panel_avatar[5]
         cls.active_player = cls.player_1.info
         cls.highlight = None
+        
+    @classmethod
+    def ble_disconnect(cls, *args, **kwargs):
+        cls.loop.create_task(cls.ctrl.ble.disconnect())

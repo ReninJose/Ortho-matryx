@@ -38,7 +38,7 @@ class PigDice(Model):
         super().__init__(config, color, music=False)
 
         ROLL = ['<s>']
-        self.roll_event = [{'buttons': ROLL, 'func': self.roll}]
+        self.roll_event = {**dict.fromkeys(ROLL, self.roll)}
 
         self.loop.create_task(self.run())
 

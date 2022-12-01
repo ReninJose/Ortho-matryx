@@ -17,8 +17,6 @@ import os
 
 CWD = os.getcwd()
 
-print(CWD)
-
 if CWD[-3:] != 'app':
     print('adding gui-app')
     CWD = os.path.join(CWD, 'gui-app')
@@ -27,14 +25,20 @@ if CWD[-3:] != 'app':
 AVATAR_PATH = os.path.join(CWD, 'images/')
 SOUNDS = os.path.join(CWD, 'sounds/')
 
-print(SOUNDS)
+B1_WAV = SOUNDS + 'B1.wav'
+B2_WAV = SOUNDS + 'B2.wav'
+B3_WAV = SOUNDS + 'B3.wav'
+B4_WAV = SOUNDS + 'B4.wav'
+B5_WAV = SOUNDS + 'B5.wav'
+B6_WAV = SOUNDS + 'B6.wav'
+B7_WAV = SOUNDS + 'B7.wav'
+B8_WAV = SOUNDS + 'B8.wav'
+B9_WAV = SOUNDS + 'B9.wav'
+THEME_WAV = SOUNDS + 'Theme.wav'
 
 
 MAIN_DIR = CWD[:CWD.rfind('gui')]
 BACKEND_DIR = os.path.join(MAIN_DIR, 'backend')
-
-print(MAIN_DIR)
-print(BACKEND_DIR)
 
 
 BACKEND_PATH = os.path.join(BACKEND_DIR, 'backend')
