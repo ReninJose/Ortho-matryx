@@ -1,5 +1,5 @@
-#ifndef _ORTHO_MATRYX_COMMON_H
-#define _ORTHO_MATRYX_COMMON_H
+#ifndef _COMMON_H
+#define _COMMON_H
 
 #include <avr/sleep.h>
 #include <avr/power.h>
