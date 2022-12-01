@@ -35,10 +35,10 @@ class PigDice(Model):
         
         color = None
 
-        super().__init__(config, color)
+        super().__init__(config, color, music=False)
 
         ROLL = ['<s>']
-        self.roll_event = [{'buttons': ROLL, 'func': self.roll}]
+        self.roll_event = {**dict.fromkeys(ROLL, self.roll)}
 
         self.loop.create_task(self.run())
 
@@ -55,7 +55,6 @@ class PigDice(Model):
         
         else:
             Model.active_player = Model.computer.info 
-            print(Model.active_player)
             self.update()
 
         await io.sleep(0.1)
@@ -70,7 +69,7 @@ class PigDice(Model):
         await io.sleep(3)
         self.message['text'] = ''
 
-        self.press['text']   = 'ROLL\nDICE'
+        self.press['text'] = 'ROLL\nDICE'
         self.color = self.R_COLOR
         
         self.set_turn()

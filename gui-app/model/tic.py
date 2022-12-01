@@ -32,9 +32,9 @@ class TicTacToe(Model):
 
         color = None
 
-        super().__init__(config, color)
+        super().__init__(config, color, music=False)
 
-        self.pick_event = [{'buttons': self.SPOT, 'func': self.pick}]
+        self.pick_event = {**dict.fromkeys(self.SPOT, self.pick)}
 
         self.loop.create_task(self.run())
 
@@ -62,7 +62,7 @@ class TicTacToe(Model):
             Model.active_player = Model.computer.info 
             self.update()
 
-        await io.sleep(0.1)
+        await io.sleep(0.01)
 
         Model.active_player = Model.player_1.info 
         self.update()
@@ -228,6 +228,7 @@ class TicTacToe(Model):
             self.message['text'] = p_win.format(num=2, name=name)
 
         else:
+            Model.computer.info['score'] += 1
             self.message['text'] = '----------\n\nCOMPUTER\n\nWINS\n\n----------'
 
         self.config = {'bg-txt': self.message}

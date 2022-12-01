@@ -1,5 +1,5 @@
-// Author: Renin Kingsly Jose, Delbert Edric
-// Rev 1.2
+// Author: Renin Kingsly Jose, Delbert Edric, Ellis Hobby
+// Rev 1.3
 
 #include<bits/stdc++.h>
 #include<iostream>
@@ -8,14 +8,13 @@
 
 using namespace std;
 
-// NOTE: PATH needs to be changed when importing the code to rapsberry pi. 
-const char* PATH = "/home/ellis/Ortho-matryx/backend/score_board/sb.txt";
 
 // To group player's attributes
 class player {
     public:
         string name;
         int score;
+        int avatar;
 };
 
 // Ascending Ordering the list
@@ -29,9 +28,9 @@ bool D_sorter(player a, player b) {
 }
 
 // Rearrange and import data back to file
-void rearrage_import(forward_list<player> pool) {
+void rearrage_import(forward_list<player> pool, const char* path) {
     
-    ofstream sb_rewrite(PATH, ios::trunc);
+    ofstream sb_rewrite(path, ios::trunc);
     int size = 0;
 
     // Find # of contents of scoreboard
@@ -51,7 +50,7 @@ void rearrage_import(forward_list<player> pool) {
 
     //Rewrite text file to contain top 10 descending scores.
     for(auto itr: pool) {
-        sb_rewrite << itr.name << " " << itr.score << endl;
+        sb_rewrite << itr.name << " " << itr.score << " " << itr.avatar << endl;
     }
        
     sb_rewrite.close();
@@ -59,12 +58,17 @@ void rearrage_import(forward_list<player> pool) {
 }
 
 int main(int argc, char* argv[]){
+    
+    string main_dir = argv[4];
+    const char* PATH;
+    PATH = main_dir.append("backend/score_board/sb.txt").c_str();
 
     forward_list<player> player_list;
     player p_copy;
 
     string player_name;
     int player_score;
+    int player_avatar;
     string score_line;
     
     ifstream sb_read(PATH, ios::app);
@@ -79,7 +83,7 @@ int main(int argc, char* argv[]){
     // Check if scoreboard is empty
     if (!getline(sb_read, score_line)) {
         // Write first content on the board
-        sb_write << argv[1] << " " << stoi(argv[2]) << endl;
+        sb_write << argv[1] << " " << stoi(argv[2]) << " " << stoi(argv[3]) << endl;
         sb_read.close();
         sb_write.close();
         return 0; 
@@ -96,17 +100,20 @@ int main(int argc, char* argv[]){
             p_copy.name = player_name;
             ss >> player_score;
             p_copy.score = player_score;
+            ss >> player_avatar;
+            p_copy.avatar = player_avatar;
             player_list.push_front(p_copy);
         }
         // Load in the newest player to the linked list
         p_copy.name = argv[1];
         p_copy.score = stoi(argv[2]);
+        p_copy.avatar = stoi(argv[3]);
         player_list.push_front(p_copy);
         
         sb_write.close();
         
         // Rearrange and import data 
-        rearrage_import(player_list);  
+        rearrage_import(player_list, PATH);  
         sb_read.close();
         return 0;
     }

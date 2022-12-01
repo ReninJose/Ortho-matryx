@@ -5,7 +5,7 @@ import asyncio as io
 import subprocess
 
 from model.model import Model, KEY_TO_NUM, LETTERS
-from util.path   import BACKEND_PATH, BACKEND_ARG_SCOREBOARD, SCOREBOARD
+from util.path   import *
 
 
 
@@ -49,12 +49,14 @@ class TitleScreen(Model):
             '<a>', '<s>', '<d>',
             '<z>', '<x>', '<c>'
         )
-        event = [{'buttons': menu, 'obj': 'main-menu'}]
+        event = {**dict.fromkeys(menu, Model.sub['main-menu'])}
+        event = None
+     
+        
 
         Model.reset_game_data()
 
-        super().__init__(config, color, event)
-
+        super().__init__(config, color, event, music=False)
        
 #-----------------------------------------------------
 
@@ -85,14 +87,16 @@ class MainMenu(Model):
         MODE  = ['<e>', '<s>']
         QUIT  = ['<z>']
         HIGH  = ['<c>']
-        event = [ {'buttons': QUICK, 'obj': 'start-button'},
-                  {'buttons': MODE,  'obj': 'avatar-menu'},
-                  {'buttons': QUIT,  'obj': 'title-screen'},
-                  {'buttons': HIGH,  'obj': 'high-score'} ]
+        event = {
+            **dict.fromkeys(QUICK, Model.sub['start-button']),
+            **dict.fromkeys(MODE, Model.sub['avatar-menu']),
+            **dict.fromkeys(QUIT, Model.ble_disconnect),
+            **dict.fromkeys(HIGH, Model.sub['high-score'])
+        }
         
         Model.reset_game_data()
 
-        super().__init__(config, color, event)
+        super().__init__(config, color, event, music=True)
         
 
 
@@ -125,12 +129,14 @@ class GameSelect(Model):
         self.title   = config['title']
         self.confirm = config['txt-8']
 
-        color = 'BBBBBBRXX'
+        color = 'BBBXXXRXX'
 
         SELECT  = ['<q>', '<w>', '<e>']
         MENU    = ['<z>']
-        event   = [ {'buttons': SELECT, 'func': self.select},
-                    {'buttons': MENU,   'obj' : 'main-menu'} ]
+        event = {
+            **dict.fromkeys(SELECT, self.select),
+            **dict.fromkeys(MENU, Model.sub['main-menu'])
+        }
 
         super().__init__(config, color, event)
 
@@ -163,7 +169,8 @@ class GameSelect(Model):
         self.color = COLOR[:select] + 'W' + COLOR[select+1:]
         
         # enable confirm event to be called - will dispatch AvartarMenu
-        self.event = [{'buttons': self.CONFIRM, 'obj': 'start-button'}]
+        event = {**dict.fromkeys(self.CONFIRM, Model.sub['start-button'])}
+        self.event.update(event)
         
         # update BLE RGB and canvas view
         self.update()
@@ -195,6 +202,8 @@ class AvatarMenu(Model):
         if args:
             if args[0] == 's':
                 Model.multiplayer = True
+
+        print(Model.multiplayer)
             
         config = {
             'img-0': {}, 'img-1': {}, 'img-2': {},
@@ -209,8 +218,10 @@ class AvatarMenu(Model):
 
         SELECT  = ['<q>', '<w>', '<e>', '<a>', '<s>', '<d>']
         MENU    = ['<z>']
-        event   = [ {'buttons': MENU,   'obj': 'main-menu'},  
-                    {'buttons': SELECT, 'func': self.select} ] 
+        event = {
+            **dict.fromkeys(MENU, Model.sub['main-menu']),
+            **dict.fromkeys(SELECT, self.select)
+        }
 
         Model.game_run = True
 
@@ -244,16 +255,17 @@ class AvatarMenu(Model):
         # translate key to index value
         select = KEY_TO_NUM[key]
         
-        Model.avatar(select)
+        Model.player_avatar(select)
 
         # update the color map to highlight selection
-        COLOR = 'XXXXXXRXG'
-        self.color = COLOR[:select] + 'B' + COLOR[select+1:]
+        COLOR = 'BBBBBBRXG'
+        self.color = COLOR[:select] + 'W' + COLOR[select+1:]
 
         self.enter['text'] = 'ENTER\nNAME'
         
         # enable PlayName event to be called
-        self.event = [{'buttons': self.NAME, 'obj': 'player-name'}]
+        event = {**dict.fromkeys(self.NAME, Model.sub['player-name'])}
+        self.event.update(event)
         self.update()
         
         
@@ -292,7 +304,7 @@ class PlayerName(Model):
         color = 'WWWXXXRGB'
 
         NAME  = ['<z>', '<x>', '<c>']
-        event   = [{'buttons': NAME, 'func': self.enter}]
+        event = {**dict.fromkeys(NAME, self.enter)}
 
         super().__init__(config, color, event)
 
@@ -383,28 +395,49 @@ class StartButton(Model):
     
     '''
     def __init__(self, *args):
-
-        config = {
-            'txt-0': {'text': 'EXIT'},
-            'txt-2': {'text': 'CHANGE\nGAME'},
-            'txt-4': {'text': 'START\nGAME'},
-            
-            'title': {'text': self.title()}
-        }
-
-        color = 'RXBXGXXXX'
-
-        EXIT  = ['<q>']
-        NEW   = ['<e>']
-        START = ['<s>']
         
-        event   = [ {'buttons': EXIT,  'obj': 'main-menu'},  
-                    {'buttons': NEW,   'obj': 'game-select'},
-                    {'buttons': START, 'obj': Model.game_type}, ] 
+        START = ['<s>']
+        EXIT  = ['<q>']
+        
+        if Model.quickplay:
+            config = {
+                'txt-0': {'text': 'EXIT'},
+                'txt-4': {'text': 'START\nGAME'},
+                    
+                'title': {'text': self.title()}
+            }
+            color = 'RXXXGXXXX'
+            
+            event = {
+                **dict.fromkeys(EXIT, Model.sub['main-menu']),
+                **dict.fromkeys(START, Model.new_game)
+            }
+            
+            Model.game_type = 'memory'
+     
+            
+        else:
+            config = {
+                'txt-0': {'text': 'EXIT'},
+                'txt-2': {'text': 'CHANGE\nGAME'},
+                'txt-4': {'text': 'START\nGAME'},
+                    
+                'title': {'text': self.title()}
+            }
+            color = 'RXBXGXXXX'
+            NEW   = ['<e>']
+            
+            event = {
+                **dict.fromkeys(EXIT, Model.sub['main-menu']),
+                **dict.fromkeys(NEW, Model.sub['game-select']),
+                **dict.fromkeys(START, Model.new_game)
+            }
 
-        Model.player_1.info['game'] = Model.game_type
-        Model.player_2.info['game'] = Model.game_type 
-        Model.computer.info['game'] = Model.game_type
+            Model.player_1.info['game'] = Model.game_type
+            Model.player_2.info['game'] = Model.game_type 
+            Model.computer.info['game'] = Model.game_type
+            
+            
         
         super().__init__(config, color, event)
 
@@ -420,6 +453,11 @@ class StartButton(Model):
             number = Model.active_player['player']
             return (f'PLAYER {number}:  -  PRESS TO START')
         else:
+            
+            Model.active_player = Model.computer.info 
+            Model.player_avatar(5)
+            
+            Model.active_player = Model.player_1.info 
             return ('PRESS TO START') 
 
         
@@ -440,6 +478,10 @@ class PostGameMenu(Model):
     
     '''  
     def __init__(self, *args):
+        
+        Model.game_run = True
+        Model.highlight = None
+
         font  = Model.font(size=60)
         config = {
             'txt-0': {'text': ''},
@@ -461,12 +503,13 @@ class PostGameMenu(Model):
         MENU   = ['<z>']
         HIGH   = ['<x>']
         PLAY   = ['<c>']
-        event  = [
-            {'buttons': MENU, 'obj': 'main-menu'},
-            {'buttons': HIGH, 'obj': 'high-score'},
-            {'buttons': PLAY, 'obj': 'start-button'}
-        ]
         
+        event = {
+            **dict.fromkeys(MENU, Model.sub['main-menu']),
+            **dict.fromkeys(HIGH, Model.sub['high-score']),
+            **dict.fromkeys(PLAY, Model.sub['start-button'])
+        }
+       
         # if not in quickplay, show running total
         # and write to score board
         score = Model.player_1.info['score']
@@ -474,30 +517,47 @@ class PostGameMenu(Model):
         score_1['text'] = score
 
         if Model.quickplay is False:
-            name  = Model.player_1.info['name']
-            score = Model.player_1.info['score']
+            name   = Model.player_1.info['name']
+            score  = Model.player_1.info['score']
+            avatar = Model.player_1.info['avindex']
             label_1['text'] = f'{name}\nSCORE'
             score_1['text'] = score
-            self.write_score(name, score)
+            self.write_score(name, score, avatar)
                 
             # call backend: write player total to score board
             if Model.multiplayer is True:
                 color = 'WWXXWWRBG'
                 name  = Model.player_2.info['name']
                 score = Model.player_2.info['score']
+                avatar = Model.player_2.info['avindex']
                 label_2['text'] = f'{name}\nSCORE'
                 score_2['text'] = score
-                self.write_score(name, score)
-
-        Model.highlight = None
-
-        super().__init__(config, color, event)
+                self.write_score(name, score, avatar)
         
 
-    def write_score(self, name, score):
+        super().__init__(config, color, event, True)
+
+        if Model.multiplayer == True:
+            self.loop.create_task(self.player_info())
+
+    
+
+    def write_score(self, name, score, avatar):
         subprocess.run([ BACKEND_PATH, 
-                         BACKEND_ARG_SCOREBOARD, 
-                         name, str(score) ])    
+                         BACKEND_ARG_SCOREBOARD, MAIN_DIR,
+                         name, str(score), str(avatar) ])    
+
+
+    async def player_info(self):
+        
+        Model.active_player = Model.player_1.info
+        self.update()
+        await io.sleep(0.01)
+        
+        Model.active_player = Model.player_2.info
+        self.update()
+ 
+
 
 
 
@@ -516,34 +576,26 @@ class HighScoreScreen(Model):
     :param controller: Main App controller
     
     '''
-    RETURN = [
-        '<q>', '<w>', '<e>',
-        '<a>', '<s>', '<d>',
-        '<z>', '<x>', '<c>'
-    ]
     def __init__(self, *args):
-        font = Model.font(size=30, style='bold italic')
-        config = {
-            'bg-txt': {'text': self.highscores(), 'font': font},
-        }
+        
+        self.scoreboard = self.highscores()
+
+        self.page  = [(0,3), (3,6), (6,9)]
+        self.p_idx = 0
+        
+        config = self.set_board(self.page[self.p_idx])
 
         color = None
 
-        RETURN = [
+        self.KEYS = [
             '<q>', '<w>', '<e>',
             '<a>', '<s>', '<d>',
             '<z>', '<x>', '<c>'
         ]
-        # if game is running return to PostGameMenu
-        if Model.game_run is True:
-            event = [{'buttons': RETURN, 'obj': 'post-game'}]
+        event = {**dict.fromkeys(self.KEYS, self.next_page)}
 
-        # else return to MainMenu
-        else:
-            event = [{'buttons': RETURN, 'obj': 'main-menu'}]
+        Model.game_run = False
 
-        Model.highlight = None
-        
         super().__init__(config, color, event)
 
 
@@ -552,9 +604,56 @@ class HighScoreScreen(Model):
         Get and display highscore data
         
         '''
-        scores = 'RANK\tNAME\tSCORE\n\n'
-        file = open(SCOREBOARD, 'r')
-        for i, line in enumerate(file):
-            scores += str(i+1) + '.\t' + line.replace(' ', '\t') + '\n'
+        with open(SCOREBOARD, 'r') as file: 
+            data = [line.split() for line in file]    
+        return data
+
+
+    def set_board(self, page):
+
+        start, stop = page
+
+        self.p_idx += 1
+
+        temp = {'sb-grid': {'fill': 'black'}}
+
+        for i in range(4):
+            temp.update({f'sb-label-{i}' : {'fill': 'white'}})
+
+        for i in range(start, stop, 1):
+
+            info   = self.scoreboard[i]
+            name   = info[0]
+            score  = info[1]
+            avatar = Model.scoreboard_avatar(int(info[2]))
+
+            temp.update({f'sb-rank-{i}'  : {'fill' : 'white'}})
+            temp.update({f'sb-name-{i}'  : {'text' : name}})
+            temp.update({f'sb-score-{i}' : {'text' : score}})
+            temp.update({f'sb-avatar-{i}': {'image': avatar}})
+
+        return temp
+        
+
+    def next_page(self, key):
+
+        self.config = {}
+        self.config = self.set_board(self.page[self.p_idx])
+
+        if self.p_idx == 3:
             
-        return scores
+            self.event = []
+
+            # if game is running return to PostGameMenu
+            if Model.game_type != None:    
+                self.event = {**dict.fromkeys(self.KEYS, Model.sub['post-game'])}
+
+            # else return to MainMenu
+            else:
+                self.event = {**dict.fromkeys(self.KEYS, Model.sub['main-menu'])}
+
+        self.update()
+
+
+
+    

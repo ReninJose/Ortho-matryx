@@ -1,5 +1,5 @@
-// Author: Renin Kingsly Jose
-// Rev 2.5
+// Author: Renin Kingsly Jose, Ellis Hobby
+// Rev 2.6
 
 /* ------------------------------------------
 
@@ -19,31 +19,49 @@ Adding contents to the scoreboard:
 #include<unistd.h>
 #include<sys/wait.h>
 
+
+
 using namespace std;
 
-const char* sb_PATH = "/home/ellis/Ortho-matryx/backend/score_board/sb";
-const char* cg_PATH = "/home/ellis/Ortho-matryx/backend/color_rand_gen/color_generator";
 
 int main(int argc, char* argv[]){
+    
+    string main_dir = argv[2];
+    string sb_dir = main_dir;
+    string cg_dir = main_dir;
+    const char* sb_PATH;
+    const char* cg_PATH;
+    const char* DIR = main_dir.c_str();
+        
+    sb_PATH = sb_dir.append("backend/score_board/sb").c_str();
+    cg_PATH = cg_dir.append("backend/color_rand_gen/color_generator").c_str();
+    
+    cout << main_dir << endl;
+    cout << sb_PATH << endl;
+    cout << cg_PATH << endl;
 
-    int status;
+    
     string command = argv[1];
+    
+    cout << argc << endl;
 
     // Initiate code for scoreboard
     if (command.compare("sb") == 0) {
         
-        if (argc != 4) {
+        if (argc != 6) {
             cout << "Invalid # of argument count" << endl;
             return 1;
         }
 
         const char* id;
         const char* score;
+        const char* avatar;
 
-        id = argv[2];
-        score = argv[3];
+        id = argv[3];
+        score = argv[4];
+        avatar = argv[5];
 
-        if(execl(sb_PATH, "sb", id, score , NULL) < 0) {
+        if(execl(sb_PATH, "sb", id, score , avatar, DIR, NULL) < 0) {
             perror("Execl failed");
             return 1;
         }    
@@ -51,7 +69,7 @@ int main(int argc, char* argv[]){
     // Initiate code for Color Generator
     else if (command.compare("cg") == 0) {
 
-        if(execl(cg_PATH, "color", NULL) < 0) {
+        if(execl(cg_PATH, "color_generator", DIR, NULL) < 0) {
             perror("Execl failed");
             return 1;
         }
@@ -59,4 +77,6 @@ int main(int argc, char* argv[]){
 
     return 0;
 }
+    
+
     

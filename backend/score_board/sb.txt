@@ -1,6 +1,0 @@
-ZZZ 3
-ZZZ 3
-AAA 2
-AAA 1
-AAA 1
-AAA 1

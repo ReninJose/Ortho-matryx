@@ -77,6 +77,7 @@ class Player(DynamicPlayerDict):
             score  = 0,
             total  = 0,
             avatar = None,
+            avindex = None,
             
             guess  = 0,
             symbol = None,

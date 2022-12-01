@@ -7,8 +7,7 @@ import random
 
 from model.model import Model, KEY_TO_NUM
 from util.color  import DEFAULT
-from util.path   import (BACKEND_PATH, BACKEND_ARG_COLOR, 
-COLOR_PATTERN, CORRECT_COLOR)
+from util.path   import *
 
 
 """---------------------------------------------
@@ -21,7 +20,7 @@ COLOR_PATTERN, CORRECT_COLOR)
 ---------------------------------------------"""
 class MemoryGame(Model):
 
-    DELAY = 0.5
+    DELAY = 1
     LOOPS = 3
 
     GUESS = [
@@ -41,9 +40,9 @@ class MemoryGame(Model):
 
         color = None
         
-        event = {}
+        self.guess_event = {**dict.fromkeys(self.GUESS, self.guess)}
 
-        super().__init__(config, color, event)
+        super().__init__(config, color, music=False)
 
         # update controller game running state
         Model.game_run = True
@@ -65,13 +64,15 @@ class MemoryGame(Model):
         Read random pattern and correct color from file
         
         '''
-        subprocess.run([BACKEND_PATH, BACKEND_ARG_COLOR])  
+        subprocess.run([BACKEND_PATH, BACKEND_ARG_COLOR, MAIN_DIR])  
         
         pattern_file = open(COLOR_PATTERN, 'r')
         correct_file = open(CORRECT_COLOR, 'r')
 
         self.full = pattern_file.readline().rstrip('\n')
-        self.win  = correct_file.readline().rstrip('\n') 
+        self.win  = correct_file.readline().rstrip('\n')
+        
+        self.full = self.full[:9]
 
         pattern_file.close()
         correct_file.close()
@@ -82,6 +83,7 @@ class MemoryGame(Model):
         and show winning color
 
         '''
+        
          # get colors and update patterns
         self.get_colors()
         self.set_patterns()
@@ -93,7 +95,7 @@ class MemoryGame(Model):
 
         await self.reveal()
 
-        self.event = [{'buttons': self.GUESS, 'func': self.guess}]
+        self.event = self.guess_event
         self.update()
 
 
@@ -177,6 +179,8 @@ class MemoryGame(Model):
         :param key: event key press
         
         '''
+
+        self.clear_event()
         
         # set key to index value
         guess = KEY_TO_NUM[key]
@@ -205,6 +209,11 @@ class MemoryGame(Model):
         # dispatch PostGameMenu
         if len(self.guess_list) == 3:
             self.loop.create_task(self.end())
+
+        else:
+            self.event = self.guess_event
+            self.update()
+
 
         
     

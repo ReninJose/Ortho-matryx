@@ -2,9 +2,7 @@
 // Rev 2.0
 
 /* ------------------------------------------
-
 "color_generator.cpp" generates randomized pattern of colors for each game round and picks the correct color.
-
 ------------------------------------------ */
 
 #include <fstream>
@@ -15,10 +13,6 @@ using namespace std;
 
 // # of buttons
 #define SIZE 9
-
-const char* color_PATH = "/home/ellis/Ortho-matryx/backend/color_rand_gen/color_pattern.txt";
-
-const char* cc_PATH = "/home/ellis/Ortho-matryx/backend/color_rand_gen/correct_color.txt";
 
 
 char* shuffle_array(char arr[], int n)
@@ -32,12 +26,26 @@ char* shuffle_array(char arr[], int n)
     return arr;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     
     srand(time(NULL));
     char* color_randomized;
     char colors[] = {'r','r','r','g','g','g','b','b','b'};
     char correct_color;
+    
+    // Shuffle colors
+    color_randomized = shuffle_array(colors, SIZE);
+    
+    string main_dir = argv[1];
+    string color_dir = main_dir;
+    string cc_dir = main_dir;
+    
+    const char* color_PATH;
+    const char* cc_PATH;
+    
+    color_PATH = color_dir.append("backend/color_rand_gen/color_pattern.txt").c_str();
+    cc_PATH = cc_dir.append("backend/color_rand_gen/correct_color.txt").c_str();
+    
 
     ifstream color_read(color_PATH, ios::in);
     ofstream color_write(color_PATH, ios::out );
@@ -45,8 +53,7 @@ int main() {
     ifstream cc_read(cc_PATH, ios::in);
     ofstream cc_write(cc_PATH, ios::out);
 
-    // Shuffle colors
-    color_randomized = shuffle_array(colors, SIZE);
+    
 
     // Opening correct_color.txt
     if (!color_read) {
@@ -54,7 +61,7 @@ int main() {
         return 1;
     }
     else{
-        color_write << color_randomized;
+        color_write << color_randomized << "\n";
     }
 
     color_read.close();
@@ -77,6 +84,3 @@ int main() {
 
     return 0;
 }
-
-
-   

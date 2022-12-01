@@ -37,30 +37,54 @@ class Model:
 
     player_1 = Player(1, 'player-1-txt', 'player-1-img', 'player-1-rec')
     player_2 = Player(2, 'player-2-txt', 'player-2-img', 'player-2-rec')
+<<<<<<< HEAD
     computer = Player(0, 'computer-txt', '', 'player-2-rec')
+=======
+    computer = Player(0, 'computer-txt', 'player-2-img', 'player-2-rec')
+>>>>>>> Ellis_Branch
     active_player = player_1.info
     highlight = None
 
     ctrl = None
+<<<<<<< HEAD
     loop = None
 
     def __init__(self, config, color, event=[]):
         self.config = config
         self.event  = event
         self.color  = color
+=======
+    sub  = None
+    loop = None
+    
+
+    def __init__(self, config, color, event=[], music=None):
+        self.config = config
+        self.event  = event
+        self.color  = color
+        self.music  = music
+>>>>>>> Ellis_Branch
         self._start()
 
     def _start(self):
         self.ctrl.model = self
+<<<<<<< HEAD
         self.clear_event()
         self._view()
         self._event()
+=======
+        self._clear_event()
+        self._view()
+        self._event()
+        self._song()
+>>>>>>> Ellis_Branch
 
     def update(self):
         self._view()
         self._event()
 
     def _view(self): 
+<<<<<<< HEAD
         self.ctrl.flag.set()
 
     def clear_event(self):
@@ -73,14 +97,52 @@ class Model:
     def avatar(cls, index):
         avatar = cls.ctrl.avatar[index]
         cls.active_player['avatar'] = avatar
+=======
+        self.ctrl.show_flag.set()
+
+    def clear_event(self):
+        self.event = []
+        self.ctrl.event_dict = self.event
+
+    def _clear_event(self):
+        self.ctrl.event_dict = {}
+                
+    def _event(self):
+        self.ctrl.event_dict = self.event
+        #for E in self.event: self.ctrl.set_event(**E)
+        
+    def _song(self):
+        if self.music != None:
+            self.ctrl.theme_song(self.music)
+
+    @classmethod
+    def player_avatar(cls, index):
+        avatar = cls.ctrl.panel_avatar[index]
+        cls.active_player['avatar']  = avatar
+        cls.active_player['avindex'] = index
+
+    @classmethod
+    def scoreboard_avatar(cls, index):
+        avatar = cls.ctrl.score_avatar[index]
+        return avatar
+>>>>>>> Ellis_Branch
 
     @classmethod
     def font(cls, size=30, style='normal'):
         return cls.ctrl.set_font(size=size, style=style)
 
     @classmethod
+<<<<<<< HEAD
     def new_model(cls, obj):
         cls.ctrl.dispatch(obj)
+=======
+    def new_model(cls, new, *args, **kwargs):
+        cls.sub[new]()
+        
+    @classmethod
+    def new_game(cls, *args, **kwargs):
+        cls.sub[cls.game_type]()
+>>>>>>> Ellis_Branch
 
     @classmethod
     def reset_game_data(cls):
@@ -95,5 +157,15 @@ class Model:
         cls.player_1.reset()
         cls.player_2.reset()
         cls.computer.reset()
+<<<<<<< HEAD
         cls.active_player = cls.player_1.info
         cls.highlight = None
+=======
+        cls.computer.info['avatar'] = cls.ctrl.panel_avatar[5]
+        cls.active_player = cls.player_1.info
+        cls.highlight = None
+        
+    @classmethod
+    def ble_disconnect(cls, *args, **kwargs):
+        cls.loop.create_task(cls.ctrl.ble.disconnect())
+>>>>>>> Ellis_Branch
