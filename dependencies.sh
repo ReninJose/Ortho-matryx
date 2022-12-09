@@ -74,11 +74,15 @@ if [ ! -f "scolor_pattern.txt" ]; then
 fi
 
 echo -e "${yellow}CREATING .font/ DIRECTORY....${NC}"
-mkdir ~/.fonts/
+cd ~
+mkdir .fonts/
 chmod 0777 .fonts/
+
+echo $(ls -la)
+
 echo -e "${yellow}COPYING AtariFontFullVersion-ZJ23.ttf TO .fonts/ DIRECTORY....${NC}"
-cd ..
-cd ..
+
+cd $MAIN_DIR
 cd gui-app/fonts
 cp AtariFontFullVersion-ZJ23.ttf ~/.fonts
 chmod 0777 AtariFontFullVersion-ZJ23.ttf

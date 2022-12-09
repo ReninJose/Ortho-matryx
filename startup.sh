@@ -12,4 +12,6 @@ MAIN_DIR=$(dirname $SCRIPT)
 # Run application
 cd $MAIN_DIR
 cd gui-app/
-python3 app.py
+
+python3 app.py &
+python3 listen-for-shutdown.py &
