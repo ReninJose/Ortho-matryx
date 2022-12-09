@@ -152,6 +152,10 @@ class TicTacToe(Model):
 
             if (self.winner == None) and (self.count != 9):
                 self.set_turn()
+        
+        else:
+            self.event = self.pick_event
+            self.update()
             
             
     async def computer(self):

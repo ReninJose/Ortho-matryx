@@ -35,8 +35,23 @@ class BLE:
         '''
             continuously scan while scan_flag is NOT SET
         '''
-        async with BleakScanner(detection_callback=self._connect) as scan:
-            await self.scan_flag.wait()
+        try:
+            async with BleakScanner(detection_callback=self._connect) as scan:
+                await self.scan_flag.wait()
+        except:
+            # check if connected_flag has been set
+            if not self.connected_flag.is_set():
+                self.connected_flag.set()
+                self.connected_flag.clear()
+            
+            # check if scan_flag has been set
+            if not self.scan_flag.is_set():
+                self.scan_flag.set()
+            
+            # restart scanning process
+            self.scan_flag.clear()
+            self.loop.create_task(self.scan())
+            
             
             
     async def _connect(self, device, adv_data):
@@ -105,6 +120,7 @@ class BLE:
             self.ctrl.active_flag.clear()
         
         # remove mac address from bluez, helps with cache issues
+        print(self.ble_mac_address)
         subprocess.call(['bluetoothctl', 'remove', self.ble_mac_address])
         
         # disconnect async task, helps with synchonization
@@ -121,7 +137,7 @@ class BLE:
             self.connected_flag.set()
             self.connected_flag.clear()
         
-        # check if scan_flag has been set        
+        # check if scan_flag has been set
         if not self.scan_flag.is_set():
             self.scan_flag.set()
         

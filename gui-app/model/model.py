@@ -38,10 +38,12 @@ class Model:
     player_1 = Player(1, 'player-1-txt', 'player-1-img', 'player-1-rec')
     player_2 = Player(2, 'player-2-txt', 'player-2-img', 'player-2-rec')
     computer = Player(0, 'computer-txt', 'player-2-img', 'player-2-rec')
+
     active_player = player_1.info
     highlight = None
 
     ctrl = None
+
     sub  = None
     loop = None
     
@@ -55,6 +57,7 @@ class Model:
 
     def _start(self):
         self.ctrl.model = self
+
         self._clear_event()
         self._view()
         self._event()
@@ -68,7 +71,7 @@ class Model:
         self.ctrl.show_flag.set()
 
     def clear_event(self):
-        self.event = []
+        self.event = {}
         self.ctrl.event_dict = self.event
 
     def _clear_event(self):
@@ -118,6 +121,7 @@ class Model:
         cls.player_1.reset()
         cls.player_2.reset()
         cls.computer.reset()
+
         cls.computer.info['avatar'] = cls.ctrl.panel_avatar[5]
         cls.active_player = cls.player_1.info
         cls.highlight = None

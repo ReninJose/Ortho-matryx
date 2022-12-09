@@ -31,12 +31,16 @@ class MemoryGame(Model):
 
     def __init__(self, *args):
         font   = Model.font(size= 100)
+        m_font = Model.font(size= 60)
         config = {
             'txt-4': {'text': '', 'font': font},
-            'title': {'text': ''}
+            'title': {'text': ''},
+            'bg-txt': {'text': 'GET READY\n',
+                        'font': m_font, 'justify': 'center'}
         }
         self.title = config['title']
         self.count = config['txt-4']
+        self.message = config['bg-txt']
 
         color = None
         
@@ -83,6 +87,17 @@ class MemoryGame(Model):
         and show winning color
 
         '''
+        for i in range(5):
+            self.message['text'] += '.'
+            await io.sleep(1)
+            self.update()
+            
+        self.message['text'] = ''
+        self.title['text'] = 'WATCH THE PATTERNS'
+        self.color = DEFAULT
+        self.update()
+        await io.sleep(3)
+           
         
          # get colors and update patterns
         self.get_colors()
