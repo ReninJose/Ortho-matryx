@@ -48,8 +48,15 @@ gui-app/model/pig.py: This file contains the display logic for the pig dice game
 
 Files located in gui-app/utils:
 
-NEED THIS TO BE FILLED
+util/color.py: This file contains the colors that are used in configuring items in the graphical user interface. The ColorDict data structure is responsible for converting the received color string to a color recognizable by itemconfig. 
 
+util/config.py: In this file, the code to configure the various elements of the graphical user interface exists.
+
+util/path.py: This file contains the paths of the files that are utilized in the operation of the graphical user interface.
+
+util/player.py: This file contains code to carry out operations with data specific to each player. 
+
+util/timer.py: This file contains code to measure runtimes of certain asynchronous functions for testing purposes.
 
 Files located in wireless_controller/:
 
